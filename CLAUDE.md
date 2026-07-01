@@ -30,6 +30,17 @@ LEVELS.forEach(l=>vm.runInThisContext(fs.readFileSync('data/'+l+'/'+l.toLowerCas
 console.log('words',HSKData.words().length,'sentences',HSKData.sentences().length,'topics',HSKData.topics().length);"
 ```
 
+## 0b. Cấp độ & nhãn hiển thị
+
+- Mỗi thư mục con trong `data/csv/` (trừ `_TEMPLATE`) là một **cấp**. Mã cấp = tên thư mục
+  (vd `HSK1`, `BT1`). `build.ps1` sắp: **HSK trước** (theo số 1..6), rồi các cấp khác theo số
+  (vd `BT1..BT4` = radical/Bộ thủ), tên không số xếp cuối — xem `Get-LevelSortKey`.
+- App hiển thị nhãn thân thiện qua `levelLabel(lv)`: `HSK1→"HSK 1"`, `BT1→"Bộ thủ 1"`, còn lại
+  giữ nguyên mã. Thêm kiểu cấp mới với nhãn riêng = thêm 1 dòng trong `levelLabel` (không bắt buộc).
+- **Bộ thủ** hiện là 4 cấp `BT1..BT4` chia theo nhóm nghĩa (Người & cơ thể / Thiên nhiên /
+  Động thực vật / Đồ vật & tính chất), đặt ở cột `chuDe`. Chúng là từ vựng bình thường (có `lv`),
+  nên mọi chế độ (thẻ, trắc nghiệm, Luyện tập…) dùng được ngay.
+
 ## 1. Cơ chế nạp dữ liệu (chạy trên `file://`)
 
 Thứ tự nạp (đặt trong HTML, ngay trước phần JS chính):

@@ -104,6 +104,30 @@ Windows đôi khi chặn chạy script. Làm cách này thay thế:
 > Thứ tự cấp dựa trên **số** trong tên (HSK1 → HSK2 → HSK3…). Xóa một cấp = xóa thư mục CSV của
 > nó rồi chạy build lại; app tự bỏ cấp đó.
 
+**Tên cấp hiển thị ra sao:**
+- Thư mục bắt đầu bằng `HSK` + số → hiện **“HSK 1”, “HSK 2”…** (và luôn xếp **trước**).
+- Thư mục bắt đầu bằng `BT` + số → hiện **“Bộ thủ 1”, “Bộ thủ 2”…** (xếp **sau** các cấp HSK).
+- Tên khác → hiện đúng như tên thư mục.
+
+---
+
+## Phần 3b — Bộ thủ (chia theo chủ đề để dễ học)
+
+Có sẵn 4 cấp **Bộ thủ** (các bộ thủ Hán tự thông dụng), chia theo nhóm nghĩa cho dễ nhớ:
+
+| Cấp | Nhóm | Ví dụ |
+|-----|------|-------|
+| **Bộ thủ 1** | Người & cơ thể | 人 口 女 心 手 目 … |
+| **Bộ thủ 2** | Thiên nhiên | 日 月 水 火 山 雨 … |
+| **Bộ thủ 3** | Động thực vật | 马 鱼 鸟 牛 竹 米 … |
+| **Bộ thủ 4** | Đồ vật & tính chất | 门 车 衣 食 金 大 小 … |
+
+- **Học bộ thủ:** trên app chọn nút cấp **“Bộ thủ 1…4”**, hoặc vào **Luyện tập → Học từ** rồi tick
+  cấp Bộ thủ ở màn chọn nguồn.
+- **Thêm bộ thủ:** mở `data/csv/BT1/words.csv` (…BT2, BT3, BT4) bằng Excel, thêm dòng, lưu, chạy build.
+- **Thêm một nhóm bộ thủ mới:** chép `data/csv/BT4/` → `data/csv/BT5/`, sửa nội dung, build → nút
+  “Bộ thủ 5” tự xuất hiện.
+
 ---
 
 ## Phần 4 — Ý nghĩa các cột trong CSV
@@ -170,6 +194,7 @@ data/
   csv/                          # ⇦ NƠI BẠN SỬA NỘI DUNG
     HSK1/  words.csv  conversations.csv  sentences.csv
     HSK2/  words.csv  conversations.csv  sentences.csv
+    BT1/ BT2/ BT3/ BT4/         # 4 cấp "Bộ thủ" (chỉ có words.csv)
     _TEMPLATE/                  # mẫu để chép khi thêm cấp mới
     README.md                   # bản hướng dẫn biên soạn ngắn gọn
   registry.js, manifest.js      # TỰ SINH — đừng sửa tay

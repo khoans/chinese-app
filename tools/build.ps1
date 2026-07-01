@@ -40,10 +40,11 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
 }
 
-# --- Hàm sắp thứ tự cấp: theo số trong tên (HSK1 < HSK2 < ... < HSK6), tên không có số đẩy xuống cuối ---
+# --- Hàm sắp thứ tự cấp: HSK trước (theo số HSK1<HSK2<...), rồi tới các cấp khác (theo số), tên không số cuối cùng ---
 function Get-LevelSortKey {
     param([string]$LevelName)
-    if ($LevelName -match '(\d+)') { return [int]$Matches[1] }
+    if ($LevelName -match '^HSK(\d+)') { return [int]$Matches[1] }          # HSK1..HSK6 -> 1..6 (đứng đầu)
+    if ($LevelName -match '(\d+)')     { return 1000 + [int]$Matches[1] }   # cấp khác có số (vd BT1) -> sau HSK
     return 9999
 }
 

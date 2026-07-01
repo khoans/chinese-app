@@ -37,8 +37,8 @@ header{display:flex;align-items:center;gap:12px}
 
 /* filters */
 .filters{display:flex;gap:8px;flex-wrap:wrap}
-.seg{display:flex;background:var(--paper2);border:1px solid var(--line);border-radius:11px;padding:3px;gap:3px;flex:1;min-width:150px}
-.seg button{flex:1;border:none;background:transparent;font:inherit;font-weight:600;font-size:12px;color:var(--ink2);padding:8px 6px;border-radius:8px;cursor:pointer}
+.seg{display:flex;flex-wrap:wrap;background:var(--paper2);border:1px solid var(--line);border-radius:11px;padding:3px;gap:3px;flex:1;min-width:150px}
+.seg button{flex:1 1 auto;min-width:62px;border:none;background:transparent;font:inherit;font-weight:600;font-size:12px;color:var(--ink2);padding:8px 6px;border-radius:8px;cursor:pointer;white-space:nowrap}
 .seg button.on{background:var(--ink);color:var(--paper)}
 select{font:inherit;font-weight:600;font-size:12px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 12px;cursor:pointer;flex:1;min-width:150px}
 
@@ -458,10 +458,20 @@ const CONVS  = HSKData.conversations();  // hội thoại gộp từ mọi cấp
 const TOPICS = HSKData.topics();         // chủ đề tự suy ra theo thứ tự xuất hiện
 document.getElementById('totalN').textContent = WORDS.length;
 document.getElementById('topicN').textContent = TOPICS.length;
+/* Nhãn hiển thị cho một cấp: HSK1->"HSK 1", BT1->"Bộ thủ 1", còn lại giữ nguyên. Thêm cấp kiểu khác
+   chỉ cần bổ sung một dòng ở đây (không bắt buộc — mặc định vẫn hiện đúng mã cấp). */
+function levelLabel(lv){
+  if(/^HSK\d/.test(lv)) return lv.replace(/^HSK/,'HSK ');
+  if(/^BT\d/.test(lv))  return 'Bộ thủ '+lv.slice(2);
+  return lv;
+}
 (function fillLevelRange(){
   const levels=(window.HSKData&&HSKData.levels().length)?HSKData.levels():(window.LEVELS||[]);
-  const nums=levels.map(l=>{const m=l.match(/\d+/);return m?m[0]:l;});
-  document.getElementById('lvRange').textContent = nums.length?('HSK '+(nums.length>1?nums[0]+'–'+nums[nums.length-1]:nums[0])):'HSK';
+  const hskNums=levels.filter(l=>/^HSK\d/.test(l)).map(l=>l.match(/\d+/)[0]);
+  const hasRadicals=levels.some(l=>/^BT\d/.test(l));
+  let text = hskNums.length?('HSK '+(hskNums.length>1?hskNums[0]+'–'+hskNums[hskNums.length-1]:hskNums[0])):'';
+  if(hasRadicals) text += (text?' · ':'')+'Bộ thủ';
+  document.getElementById('lvRange').textContent = text || 'HSK';
 })();
 
 /* ---------- TTS ---------- */
@@ -484,7 +494,7 @@ topicSel.innerHTML='<option value="ALL">Tất cả chủ đề</option>'+TOPICS.
   const seg=document.getElementById('lvSeg');
   const levels=(window.HSKData&&HSKData.levels().length)?HSKData.levels():(window.LEVELS||[]);
   let html='<button data-lv="ALL" class="on">Tất cả</button>';
-  levels.forEach(lv=>{ html+=`<button data-lv="${lv}">${lv.replace(/^HSK/,'HSK ')}</button>`; });
+  levels.forEach(lv=>{ html+=`<button data-lv="${lv}">${levelLabel(lv)}</button>`; });
   seg.innerHTML=html;
 })();
 function pool(){return WORDS.filter(w=>(level==='ALL'||w.lv===level)&&(topic==='ALL'||w.topic===topic));}
@@ -586,11 +596,11 @@ function renderCard(){
   const w=deck[pos];if(!w){document.getElementById('cHanzi').textContent='—';return;}
   card.classList.remove('flip');
   cHanzi.textContent=w.w;cPy.textContent=w.p;cMean.textContent=w.m;
-  cLv.textContent=w.lv;cLv2.textContent=w.lv;cTopic.textContent=w.topic;
+  cLv.textContent=levelLabel(w.lv);cLv2.textContent=levelLabel(w.lv);cTopic.textContent=w.topic;
   cIdx.textContent=(pos+1)+' / '+deck.length;
   if(w.ex){cExBox.style.display='block';cExZh.textContent=w.ex;cExPy.textContent=w.exp;cExVi.textContent=w.exm;}
   else cExBox.style.display='none';
-  cDeck.textContent=(level==='ALL'?'Tất cả':level)+' · '+deck.length+' từ';
+  cDeck.textContent=(level==='ALL'?'Tất cả':levelLabel(level))+' · '+deck.length+' từ';
   updKnown();
 }
 let deckKey='';
@@ -629,7 +639,7 @@ let wWord=null,wWriters=[],wIdx=0;
 function newWrite(){
   const p=pool();if(!p.length)return;
   wWord=rand(p);wIdx=0;
-  wMean.textContent=wWord.m;wPy.textContent=wWord.p;wLv.textContent=wWord.lv+' · '+wWord.topic;
+  wMean.textContent=wWord.m;wPy.textContent=wWord.p;wLv.textContent=levelLabel(wWord.lv)+' · '+wWord.topic;
   document.getElementById('wMsg').textContent='';
   buildWriteTargets();
 }
@@ -1064,7 +1074,7 @@ const Trainer=(function(){
         <div class="fld">
           <h4>Cấp độ (chọn nhiều)</h4>
           <div class="chips" data-role="levels">
-            ${levels.map(lv=>`<button class="chip${cfg.levels.includes(lv)?' on':''}" data-lv="${lv}">${lv.replace(/^HSK/,'HSK ')}</button>`).join('')}
+            ${levels.map(lv=>`<button class="chip${cfg.levels.includes(lv)?' on':''}" data-lv="${lv}">${levelLabel(lv)}</button>`).join('')}
           </div>
         </div>
         <div class="fld">
@@ -1236,14 +1246,14 @@ const Trainer=(function(){
   function toItemView(item,kind,direction){
     // Chuẩn hoá mọi loại về: promptMain, promptSub, aZh, aPy, aVi, aEx, speakText, isZhPrompt, typedTargets
     if(kind==='word'){
-      const view={aZh:item.w,aPy:item.p,aVi:item.m,aEx:item.ex?`Ví dụ: ${item.ex} — ${item.exm||''}`:'',speakText:item.w,promptSub:item.lv+' · '+(item.topic||'')};
+      const view={aZh:item.w,aPy:item.p,aVi:item.m,aEx:item.ex?`Ví dụ: ${item.ex} — ${item.exm||''}`:'',speakText:item.w,promptSub:levelLabel(item.lv)+' · '+(item.topic||'')};
       if(direction==='vi2zh'){view.promptMain=item.m;view.isZhPrompt=false;view.typedTargets=['py','zh'];}
       else if(direction==='zh2vi'){view.promptMain=item.w;view.isZhPrompt=true;view.typedTargets=['vi'];}
       else {view.promptMain='🔊';view.promptSub='Nghe rồi gõ/nhớ đáp án';view.isZhPrompt=false;view.typedTargets=['py','zh'];view.autoSpeak=true;}
       view.rawZh=item.w;
       return view;
     } else {
-      const view={aZh:item.zh,aPy:item.py,aVi:item.vi,aEx:item.source||'',speakText:item.zh,promptSub:(item.lv?item.lv+' · ':'')+(item.source||'')};
+      const view={aZh:item.zh,aPy:item.py,aVi:item.vi,aEx:item.source||'',speakText:item.zh,promptSub:(item.lv?levelLabel(item.lv)+' · ':'')+(item.source||'')};
       if(direction==='zh2vi'){view.promptMain=item.zh;view.isZhPrompt=true;view.typedTargets=['vi'];}
       else if(direction==='vi2zh'){view.promptMain=item.vi;view.isZhPrompt=false;view.typedTargets=['py','zh'];}
       else {view.promptMain='🔊';view.promptSub='Nghe rồi gõ/nhớ câu';view.isZhPrompt=false;view.typedTargets=['py','zh'];view.autoSpeak=true;}

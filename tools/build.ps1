@@ -6,11 +6,12 @@
    Chuột phải file này -> "Run with PowerShell"   (hoặc trong terminal: pwsh ./tools/build.ps1)
 
  SCRIPT LÀM GÌ:
-   1. Quét data/csv/ tìm các thư mục cấp (mọi thư mục trừ _TEMPLATE), vd HSK1, HSK2.
-   2. Đọc words.csv (và conversations.csv nếu có) của từng cấp.
-   3. Sinh data/<LEVEL>/<level>.js gọi registerLevel(...). ĐỪNG sửa các file này bằng tay.
-   4. Sinh data/manifest.js đặt biến LEVELS (đúng thứ tự cấp).
-   5. Dọn rác: xoá thư mục cấp .js đã sinh nhưng CSV không còn.
+   1. Quét ĐỆ QUY data/csv/ tìm mọi words.csv (bỏ _TEMPLATE). Cấp có thể nằm trong thư mục
+      nhóm, vd data/csv/HSK1, data/csv/BoThu/BT1, data/csv/KhangHy/KX1.
+   2. Đọc words.csv (+ conversations.csv, sentences.csv nếu có) của từng cấp.
+   3. Sinh file .js cho từng cấp, GOM theo nhóm (vd data/BoThu/bt1.js). ĐỪNG sửa các file này bằng tay.
+   4. Sinh data/manifest.js đặt LEVELS (mã cấp) + LEVEL_SRC (đường dẫn .js để app nạp).
+   5. Dọn rác: xoá .js sinh ra không còn nguồn CSV + xoá thư mục rỗng.
    6. Tất cả .js sinh ra là UTF-8 KHÔNG BOM.
 
  Chạy được với PowerShell 7 (pwsh) LẪN Windows PowerShell 5.1 (bản có sẵn trên Windows).
@@ -50,16 +51,20 @@ function Get-LevelSortKey {
     return 9999
 }
 
-# --- 1. Tìm các thư mục cấp trong data/csv (bỏ _TEMPLATE và mọi thư mục bắt đầu bằng '_') ---
-$levelFolders = Get-ChildItem -Path $csvRoot -Directory |
-    Where-Object { $_.Name -notlike "_*" } |
-    Sort-Object @{ Expression = { Get-LevelSortKey $_.Name } }, Name
+# --- 1. Tìm cấp: quét ĐỆ QUY mọi words.csv trong data/csv (bỏ _TEMPLATE / thư mục bắt đầu '_') ---
+#     Cấp có thể nằm trực tiếp (data/csv/HSK1) hoặc trong thư mục nhóm (data/csv/BoThu/BT1).
+$levelFolders = Get-ChildItem -Path $csvRoot -Recurse -File -Filter "words.csv" |
+    Where-Object { $_.FullName -notmatch '[\\/]_' } |
+    ForEach-Object { $_.Directory } |
+    Sort-Object @{ Expression = { Get-LevelSortKey $_.Name } }, FullName
 
 if (-not $levelFolders) {
-    Write-Warning "Không thấy thư mục cấp nào trong data/csv/. (Cần vd data/csv/HSK1/words.csv)"
+    Write-Warning "Không thấy words.csv nào trong data/csv/. (Cần vd data/csv/HSK1/words.csv)"
 }
 
-$orderedLevelNames = @()   # thứ tự cấp cuối cùng, để ghi vào manifest
+$orderedLevelNames = @()   # thứ tự mã cấp, để ghi vào manifest
+$orderedSrcs       = @()   # đường dẫn file .js tương ứng (cho loader nạp đúng vị trí)
+$generatedFiles    = @{}   # tập đường dẫn .js đã sinh (để dọn rác chính xác)
 $summaryLines = @()        # tóm tắt in ra cuối
 
 foreach ($levelFolder in $levelFolders) {
@@ -151,38 +156,59 @@ foreach ($levelFolder in $levelFolders) {
     if ($conversationObjects.Count -eq 0) { $payloadJson = $payloadJson -replace '"conversations":\s*null', '"conversations": []' }
     if ($sentenceObjects.Count -eq 0)     { $payloadJson = $payloadJson -replace '"sentences":\s*null', '"sentences": []' }
 
-    $header = "// TỰ ĐỘNG SINH từ data/csv/$levelName/*.csv — ĐỪNG SỬA TAY (chạy tools/build.ps1)."
+    # --- Xác định nhóm (thư mục cha) để GOM file .js: data/csv/BoThu/BT1 -> data/BoThu/bt1.js ---
+    $relFromCsv = $levelFolder.FullName.Substring($csvRoot.Length).TrimStart('\', '/')   # vd "BoThu\BT1" hoặc "HSK1"
+    $relSegments = $relFromCsv -split '[\\/]'
+    if ($relSegments.Length -gt 1) { $groupPath = ($relSegments[0..($relSegments.Length - 2)]) -join '\' }
+    else { $groupPath = "" }
+    if ($groupPath -eq "") {
+        $levelOutFolder = Join-Path $dataRoot $levelName
+        $srcPath = "data/$levelName/$levelSlug.js"
+    } else {
+        $levelOutFolder = Join-Path $dataRoot $groupPath
+        $srcPath = "data/" + ($groupPath -replace '\\', '/') + "/$levelSlug.js"
+    }
+
+    $header = "// TỰ ĐỘNG SINH từ data/csv/$($relFromCsv -replace '\\','/')/*.csv — ĐỪNG SỬA TAY (chạy tools/build.ps1)."
     $levelJs = "$header`nregisterLevel(""$levelName"", $payloadJson);`n"
 
-    $levelOutFolder = Join-Path $dataRoot $levelName
     if (-not (Test-Path $levelOutFolder)) { New-Item -ItemType Directory -Path $levelOutFolder | Out-Null }
     $levelOutPath = Join-Path $levelOutFolder "$levelSlug.js"
     Write-Utf8NoBom -Path $levelOutPath -Content $levelJs
+    $generatedFiles[(Resolve-Path $levelOutPath).Path] = $true
 
     $orderedLevelNames += $levelName
-    $summaryLines += ("  {0,-8} {1,4} từ, {2,3} hội thoại, {3,4} câu" -f $levelName, $wordObjects.Count, $conversationObjects.Count, $sentenceObjects.Count)
+    $orderedSrcs += $srcPath
+    $summaryLines += ("  {0,-9} {1,4} từ, {2,3} hội thoại, {3,4} câu   -> {4}" -f $levelName, $wordObjects.Count, $conversationObjects.Count, $sentenceObjects.Count, $srcPath)
 }
 
-# --- 4. Sinh data/manifest.js ---
+# --- 4. Sinh data/manifest.js (LEVELS = mã cấp; LEVEL_SRC = đường dẫn .js để loader nạp) ---
 $levelsJsArray = "[" + (($orderedLevelNames | ForEach-Object { '"' + $_ + '"' }) -join ", ") + "]"
+$srcsJsArray   = "[" + (($orderedSrcs       | ForEach-Object { '"' + $_ + '"' }) -join ", ") + "]"
 $manifestJs = @"
-/* TỰ ĐỘNG SINH — ĐỪNG SỬA TAY (chạy tools/build.ps1). Danh sách cấp cho app tự nạp. */
+/* TỰ ĐỘNG SINH — ĐỪNG SỬA TAY (chạy tools/build.ps1). LEVELS = mã cấp; LEVEL_SRC = file .js để nạp. */
 var LEVELS = $levelsJsArray;
-if (typeof window !== "undefined") window.LEVELS = LEVELS;
-if (typeof self !== "undefined") self.LEVELS = LEVELS;
+var LEVEL_SRC = $srcsJsArray;
+if (typeof window !== "undefined") { window.LEVELS = LEVELS; window.LEVEL_SRC = LEVEL_SRC; }
+if (typeof self !== "undefined") { self.LEVELS = LEVELS; self.LEVEL_SRC = LEVEL_SRC; }
 "@
 Write-Utf8NoBom -Path (Join-Path $dataRoot "manifest.js") -Content ($manifestJs + "`n")
 
-# --- 5. Dọn rác: xoá thư mục cấp .js đã sinh mà CSV không còn ---
-$validLevelSet = @{}
-foreach ($lvName in $orderedLevelNames) { $validLevelSet[$lvName] = $true }
-$existingDataDirs = Get-ChildItem -Path $dataRoot -Directory | Where-Object { $_.Name -ne "csv" }
-foreach ($existingDir in $existingDataDirs) {
-    if (-not $validLevelSet.ContainsKey($existingDir.Name)) {
-        Write-Host "  Dọn rác: xoá data/$($existingDir.Name)/ (không còn CSV nguồn)" -ForegroundColor Yellow
-        Remove-Item -Path $existingDir.FullName -Recurse -Force
+# --- 5. Dọn rác: xoá .js sinh ra không còn tương ứng cấp, rồi xoá thư mục rỗng (trừ data/csv) ---
+$csvPrefix = $csvRoot.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+$generatedJs = Get-ChildItem -Path $dataRoot -Recurse -File -Filter "*.js" |
+    Where-Object { -not $_.FullName.StartsWith($csvPrefix) -and $_.Name -ne "registry.js" -and $_.Name -ne "manifest.js" }
+foreach ($js in $generatedJs) {
+    if (-not $generatedFiles.ContainsKey($js.FullName)) {
+        Write-Host "  Dọn rác: xoá $($js.FullName.Substring($projectRoot.Length).TrimStart('\', '/'))" -ForegroundColor Yellow
+        Remove-Item -Path $js.FullName -Force
     }
 }
+# xoá thư mục rỗng (sâu nhất trước), không đụng data/csv
+Get-ChildItem -Path $dataRoot -Recurse -Directory |
+    Where-Object { -not $_.FullName.StartsWith($csvPrefix) -and $_.FullName -ne $csvRoot } |
+    Sort-Object { $_.FullName.Length } -Descending |
+    ForEach-Object { if (-not (Get-ChildItem -Path $_.FullName -Force)) { Remove-Item -Path $_.FullName -Force } }
 
 # --- 6. (Tuỳ chọn) Tăng phiên bản cache của service worker nếu có ---
 $swPath = Join-Path $projectRoot "sw.js"

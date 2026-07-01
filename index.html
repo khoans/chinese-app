@@ -440,13 +440,16 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);line-height:1.5;marg
 <script src="data/registry.js"></script>
 <script src="data/manifest.js"></script>
 <script>
-/* Bộ nạp: duyệt LEVELS và chèn <script> cho từng file cấp — ĐỒNG BỘ, ĐÚNG THỨ TỰ khi trang đang parse.
-   KHÔNG dùng async/defer để không xoá trắng trang; KHÔNG fetch để giữ chạy được trên file://. */
+/* Bộ nạp: chèn <script> cho từng file cấp theo LEVEL_SRC — ĐỒNG BỘ, ĐÚNG THỨ TỰ khi trang đang parse.
+   KHÔNG dùng async/defer để không xoá trắng trang; KHÔNG fetch để giữ chạy được trên file://.
+   LEVEL_SRC do build sinh ra (vd "data/BoThu/bt1.js"); nếu thiếu thì suy ra từ LEVELS (kiểu cũ). */
 (function(){
-  var levelList=(typeof LEVELS!=="undefined"&&LEVELS)?LEVELS:[];
-  for(var i=0;i<levelList.length;i++){
-    var lv=levelList[i];
-    document.write("<scr"+"ipt src=\"data/"+lv+"/"+lv.toLowerCase()+".js\"></scr"+"ipt>");
+  var srcs=(typeof LEVEL_SRC!=="undefined"&&LEVEL_SRC)?LEVEL_SRC:[];
+  if(!srcs.length && typeof LEVELS!=="undefined" && LEVELS){
+    srcs=[]; for(var k=0;k<LEVELS.length;k++){ srcs.push("data/"+LEVELS[k]+"/"+LEVELS[k].toLowerCase()+".js"); }
+  }
+  for(var i=0;i<srcs.length;i++){
+    document.write("<scr"+"ipt src=\""+srcs[i]+"\"></scr"+"ipt>");
   }
 })();
 </script>

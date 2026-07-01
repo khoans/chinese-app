@@ -37,10 +37,11 @@ console.log('words',HSKData.words().length,'sentences',HSKData.sentences().lengt
   **KX** (2000+n) → khác (3000+n) → không số (cuối) — xem `Get-LevelSortKey`.
 - App hiển thị nhãn thân thiện qua `levelLabel(lv)` + bảng `LEVEL_LABELS`:
   `HSK1→"HSK 1"`, `BT1→"Bộ thủ 1"`, `KX1→"214 bộ · 1–2 nét"`. Thêm cấp kiểu khác = thêm 1 dòng.
-- **Bộ thủ có hai phần độc lập:**
-  - `BT1..BT10` — ~100 bộ **thông dụng**, chia theo **nghĩa** (cột `chuDe` = tên nhóm), có ví dụ.
-  - `KX1..KX6` — đủ **214 bộ Khang Hy**, chia theo **số nét** (cột `chuDe` = "N nét"), dạng chữ
-    Khang Hy chuẩn (một số phồn thể), **không có ví dụ** (`ex` rỗng → app tự ẩn khung ví dụ).
+- **Bộ thủ có hai phần độc lập** (CSV gom trong thư mục nhóm cho gọn):
+  - `BT1..BT10` (CSV: `data/csv/BoThu/`) — ~100 bộ **thông dụng**, chia theo **nghĩa**
+    (cột `chuDe` = tên nhóm), có ví dụ.
+  - `KX1..KX6` (CSV: `data/csv/KhangHy/`) — đủ **214 bộ Khang Hy**, chia theo **số nét**
+    (cột `chuDe` = "N nét"), dạng chữ Khang Hy chuẩn, **không ví dụ** (`ex` rỗng → app tự ẩn khung).
   - Cả hai là từ vựng bình thường (có `lv`) nên mọi chế độ dùng được ngay.
 
 ## 1. Cơ chế nạp dữ liệu (chạy trên `file://`)
@@ -54,25 +55,29 @@ data/registry.js  →  data/manifest.js  →  (document.write các <level>.js)  
 - **`data/registry.js`**: định nghĩa `registerLevel(level, {words, conversations})` và gom vào
   đối tượng toàn cục **`HSKData`** với `HSKData.words()`, `.conversations()`, `.levels()`, `.topics()`.
   - `words()` gắn `lv` cho từng từ; `topics()` **tự suy ra** danh sách chủ đề theo thứ tự xuất hiện.
-- **`data/manifest.js`** (TỰ SINH): đặt `var LEVELS = ["HSK1","HSK2",...]` (ghi ra cả `window`+`self`).
-- **Bộ nạp inline** (trong HTML): duyệt `LEVELS`, dùng `document.write` chèn `<script src="data/<LEVEL>/<level>.js">`
-  **đồng bộ, đúng thứ tự** (KHÔNG `async`/`defer`).
-- Mỗi **`data/<LEVEL>/<level>.js`** (TỰ SINH) chỉ gọi `registerLevel("HSKx", {...})`.
+- **`data/manifest.js`** (TỰ SINH): đặt `var LEVELS = ["HSK1",...]` (mã cấp) và
+  `var LEVEL_SRC = ["data/HSK1/hsk1.js","data/BoThu/bt1.js",...]` (đường dẫn .js), ghi cả `window`+`self`.
+- **Bộ nạp inline** (trong HTML): duyệt `LEVEL_SRC`, dùng `document.write` chèn `<script src="...">`
+  **đồng bộ, đúng thứ tự** (KHÔNG `async`/`defer`; có fallback suy từ `LEVELS` nếu thiếu `LEVEL_SRC`).
+- Mỗi file cấp (TỰ SINH) chỉ gọi `registerLevel("<mã>", {...})`. File .js được **gom theo nhóm**:
+  cấp trực tiếp → `data/<LEVEL>/<level>.js`; cấp trong nhóm → `data/<Nhóm>/<level>.js`
+  (vd `data/csv/BoThu/BT1/` → `data/BoThu/bt1.js`; `data/csv/KhangHy/KX1/` → `data/KhangHy/kx1.js`).
 
 JS chính đọc dữ liệu qua `const WORDS = HSKData.words()`, `CONVS = HSKData.conversations()`,
 `TOPICS = HSKData.topics()`. Nút chọn cấp và tiêu đề được **sinh động từ `HSKData.levels()`/`LEVELS`**.
 
 ## 2. Quy trình build (nguồn dữ liệu = CSV)
 
-`tools/build.ps1` (PowerShell 7):
-1. Quét `data/csv/` tìm thư mục cấp (bỏ `_TEMPLATE`), thứ tự theo số trong tên.
+`tools/build.ps1` (PowerShell 7 & Windows PowerShell 5.1):
+1. Quét **đệ quy** `data/csv/` tìm mọi `words.csv` (bỏ `_TEMPLATE`). Cấp có thể nằm trực tiếp
+   (`data/csv/HSK1`) hoặc trong **thư mục nhóm** (`data/csv/BoThu/BT1`, `data/csv/KhangHy/KX1`).
 2. Đọc `words.csv` (+ `conversations.csv`, `sentences.csv` nếu có), ánh xạ cột tiếng Việt → khoá nội bộ
    (`chuHan→w, pinyin→p, nghia→m, viDu→ex, viDuPinyin→exp, viDuNghia→exm, chuDe→topic`;
    hội thoại `cau→zh, pinyin→py, nghia→vi, nguoi→who`, gộp theo `hoiThoai`;
    câu độc lập `cau→zh, pinyin→py, nghia→vi, chuDe→topic`).
    `registerLevel` nhận thêm mảng `sentences`; `HSKData.sentences()` trả về (đã gắn `lv`).
-3. Sinh `data/<LEVEL>/<level>.js` + `data/manifest.js` (UTF-8 **không BOM**).
-4. **Dọn rác** thư mục cấp không còn CSV. In tóm tắt.
+3. Sinh file .js mỗi cấp (gom theo nhóm) + `data/manifest.js` (`LEVELS`+`LEVEL_SRC`), UTF-8 **không BOM**.
+4. **Dọn rác**: xoá .js sinh ra không còn nguồn CSV + xoá thư mục rỗng. In tóm tắt.
 
 > CSV lưu **UTF-8 có BOM** (để Excel đọc chữ Hán). File `.js` sinh ra **không BOM**. ĐỪNG sửa tay
 > các file trong `data/<LEVEL>/` và `data/manifest.js` — build sẽ ghi đè.

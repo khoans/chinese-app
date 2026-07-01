@@ -1,4 +1,4 @@
-// TỰ ĐỘNG SINH từ data/csv/BT6/*.csv — ĐỪNG SỬA TAY (chạy tools/build.ps1).
+// TỰ ĐỘNG SINH từ data/csv/BoThu/BT6/*.csv — ĐỪNG SỬA TAY (chạy tools/build.ps1).
 registerLevel("BT6", {
   "words": [
     {

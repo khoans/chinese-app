@@ -130,9 +130,9 @@ Có sẵn **10 cấp Bộ thủ** (~100 bộ thủ Hán tự thông dụng), chi
 
 - **Học bộ thủ:** trên app chọn nút cấp **“Bộ thủ 1…10”**, hoặc vào **Luyện tập → Học từ** rồi tick
   các cấp Bộ thủ ở màn chọn nguồn.
-- **Thêm bộ thủ:** mở `data/csv/BT1/words.csv` (…BT2 … BT10) bằng Excel, thêm dòng, lưu, chạy build.
-- **Thêm một nhóm bộ thủ mới:** chép một thư mục `data/csv/BT10/` → `data/csv/BT11/`, sửa nội dung,
-  build → nút “Bộ thủ 11” tự xuất hiện.
+- **Thêm bộ thủ:** mở `data/csv/BoThu/BT1/words.csv` (…BT2 … BT10) bằng Excel, thêm dòng, lưu, chạy build.
+- **Thêm một nhóm bộ thủ mới:** chép một thư mục `data/csv/BoThu/BT10/` → `data/csv/BoThu/BT11/`, sửa
+  nội dung, build → nút “Bộ thủ 11” tự xuất hiện.
 
 ### Bộ đầy đủ 214 bộ Khang Hy (theo số nét) — độc lập
 
@@ -150,7 +150,7 @@ nét**, để tra cứu/học có hệ thống. **Hai phần độc lập** — 
 
 - Dùng **dạng chữ Khang Hy chuẩn** (một số bộ ở dạng phồn thể như 見 車 馬 龍) và **không kèm câu
   ví dụ** (đây là bảng tra bộ thủ). Cột `chuDe` là **số nét** (vd “5 nét”) để lọc.
-- Sửa/thêm: `data/csv/KX1/words.csv` … `KX6/words.csv`.
+- Sửa/thêm: `data/csv/KhangHy/KX1/words.csv` … `KX6/words.csv`.
 
 ---
 
@@ -218,8 +218,8 @@ data/
   csv/                          # ⇦ NƠI BẠN SỬA NỘI DUNG
     HSK1/  words.csv  conversations.csv  sentences.csv
     HSK2/  words.csv  conversations.csv  sentences.csv
-    BT1/ … BT10/                # 10 cấp "Bộ thủ" theo nghĩa (100 bộ thông dụng)
-    KX1/ … KX6/                 # 214 bộ Khang Hy theo số nét (độc lập)
+    BoThu/   BT1/ … BT10/       # 10 cấp "Bộ thủ" theo nghĩa (100 bộ thông dụng)
+    KhangHy/ KX1/ … KX6/        # 214 bộ Khang Hy theo số nét (độc lập)
     _TEMPLATE/                  # mẫu để chép khi thêm cấp mới
     README.md                   # bản hướng dẫn biên soạn ngắn gọn
   registry.js, manifest.js      # TỰ SINH — đừng sửa tay

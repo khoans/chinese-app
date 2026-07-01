@@ -1,4 +1,4 @@
-// TỰ ĐỘNG SINH từ data/csv/KX6/*.csv — ĐỪNG SỬA TAY (chạy tools/build.ps1).
+// TỰ ĐỘNG SINH từ data/csv/KhangHy/KX6/*.csv — ĐỪNG SỬA TAY (chạy tools/build.ps1).
 registerLevel("KX6", {
   "words": [
     {

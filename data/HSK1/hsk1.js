@@ -1341,6 +1341,303 @@ registerLevel("HSK1", {
       "exp": "tā zhèng zài zuò zuò yè 。",
       "exm": "Anh ấy đang làm bài tập.",
       "topic": "Động từ thường dùng"
+    },
+    {
+      "w": "人",
+      "p": "rén",
+      "m": "Bộ Nhân — người",
+      "ex": "人们",
+      "exp": "rénmen",
+      "exm": "mọi người",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "口",
+      "p": "kǒu",
+      "m": "Bộ Khẩu — miệng",
+      "ex": "门口",
+      "exp": "ménkǒu",
+      "exm": "cửa ra vào",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "日",
+      "p": "rì",
+      "m": "Bộ Nhật — mặt trời, ngày",
+      "ex": "日子",
+      "exp": "rìzi",
+      "exm": "ngày tháng",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "月",
+      "p": "yuè",
+      "m": "Bộ Nguyệt — mặt trăng, tháng",
+      "ex": "月亮",
+      "exp": "yuèliang",
+      "exm": "mặt trăng",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "木",
+      "p": "mù",
+      "m": "Bộ Mộc — cây, gỗ",
+      "ex": "树木",
+      "exp": "shùmù",
+      "exm": "cây cối",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "水",
+      "p": "shuǐ",
+      "m": "Bộ Thủy — nước",
+      "ex": "水果",
+      "exp": "shuǐguǒ",
+      "exm": "trái cây",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "火",
+      "p": "huǒ",
+      "m": "Bộ Hỏa — lửa",
+      "ex": "火车",
+      "exp": "huǒchē",
+      "exm": "tàu hỏa",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "土",
+      "p": "tǔ",
+      "m": "Bộ Thổ — đất",
+      "ex": "土地",
+      "exp": "tǔdì",
+      "exm": "đất đai",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "女",
+      "p": "nǚ",
+      "m": "Bộ Nữ — nữ, phụ nữ",
+      "ex": "女人",
+      "exp": "nǚrén",
+      "exm": "phụ nữ",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "子",
+      "p": "zǐ",
+      "m": "Bộ Tử — con, đứa trẻ",
+      "ex": "孩子",
+      "exp": "háizi",
+      "exm": "đứa trẻ",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "心",
+      "p": "xīn",
+      "m": "Bộ Tâm — tim, lòng",
+      "ex": "小心",
+      "exp": "xiǎoxīn",
+      "exm": "cẩn thận",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "手",
+      "p": "shǒu",
+      "m": "Bộ Thủ — tay",
+      "ex": "手机",
+      "exp": "shǒujī",
+      "exm": "điện thoại",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "目",
+      "p": "mù",
+      "m": "Bộ Mục — mắt",
+      "ex": "目光",
+      "exp": "mùguāng",
+      "exm": "ánh mắt",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "田",
+      "p": "tián",
+      "m": "Bộ Điền — ruộng",
+      "ex": "田地",
+      "exp": "tiándì",
+      "exm": "ruộng đất",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "力",
+      "p": "lì",
+      "m": "Bộ Lực — sức lực",
+      "ex": "力气",
+      "exp": "lìqi",
+      "exm": "sức lực",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "大",
+      "p": "dà",
+      "m": "Bộ Đại — lớn",
+      "ex": "大人",
+      "exp": "dàrén",
+      "exm": "người lớn",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "小",
+      "p": "xiǎo",
+      "m": "Bộ Tiểu — nhỏ",
+      "ex": "小孩",
+      "exp": "xiǎohái",
+      "exm": "trẻ nhỏ",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "山",
+      "p": "shān",
+      "m": "Bộ Sơn — núi",
+      "ex": "山水",
+      "exp": "shānshuǐ",
+      "exm": "non nước",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "石",
+      "p": "shí",
+      "m": "Bộ Thạch — đá",
+      "ex": "石头",
+      "exp": "shítou",
+      "exm": "hòn đá",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "金",
+      "p": "jīn",
+      "m": "Bộ Kim — vàng, kim loại",
+      "ex": "黄金",
+      "exp": "huángjīn",
+      "exm": "vàng",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "门",
+      "p": "mén",
+      "m": "Bộ Môn — cửa",
+      "ex": "大门",
+      "exp": "dàmén",
+      "exm": "cổng lớn",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "马",
+      "p": "mǎ",
+      "m": "Bộ Mã — ngựa",
+      "ex": "马路",
+      "exp": "mǎlù",
+      "exm": "đường cái",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "鱼",
+      "p": "yú",
+      "m": "Bộ Ngư — cá",
+      "ex": "金鱼",
+      "exp": "jīnyú",
+      "exm": "cá vàng",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "鸟",
+      "p": "niǎo",
+      "m": "Bộ Điểu — chim",
+      "ex": "小鸟",
+      "exp": "xiǎoniǎo",
+      "exm": "chim nhỏ",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "雨",
+      "p": "yǔ",
+      "m": "Bộ Vũ — mưa",
+      "ex": "下雨",
+      "exp": "xiàyǔ",
+      "exm": "trời mưa",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "车",
+      "p": "chē",
+      "m": "Bộ Xa — xe",
+      "ex": "汽车",
+      "exp": "qìchē",
+      "exm": "ô tô",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "米",
+      "p": "mǐ",
+      "m": "Bộ Mễ — gạo",
+      "ex": "大米",
+      "exp": "dàmǐ",
+      "exm": "gạo",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "衣",
+      "p": "yī",
+      "m": "Bộ Y — áo, quần áo",
+      "ex": "衣服",
+      "exp": "yīfu",
+      "exm": "quần áo",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "食",
+      "p": "shí",
+      "m": "Bộ Thực — ăn, thức ăn",
+      "ex": "食物",
+      "exp": "shíwù",
+      "exm": "thức ăn",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "言",
+      "p": "yán",
+      "m": "Bộ Ngôn — lời nói",
+      "ex": "语言",
+      "exp": "yǔyán",
+      "exm": "ngôn ngữ",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "足",
+      "p": "zú",
+      "m": "Bộ Túc — chân",
+      "ex": "足球",
+      "exp": "zúqiú",
+      "exm": "bóng đá",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "耳",
+      "p": "ěr",
+      "m": "Bộ Nhĩ — tai",
+      "ex": "耳朵",
+      "exp": "ěrduo",
+      "exm": "cái tai",
+      "topic": "Bộ thủ"
+    },
+    {
+      "w": "见",
+      "p": "jiàn",
+      "m": "Bộ Kiến — thấy, nhìn",
+      "ex": "看见",
+      "exp": "kànjiàn",
+      "exm": "nhìn thấy",
+      "topic": "Bộ thủ"
     }
   ],
   "conversations": [

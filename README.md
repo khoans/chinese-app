@@ -113,7 +113,7 @@ Windows đôi khi chặn chạy script. Làm cách này thay thế:
 
 ## Phần 3b — Bộ thủ (chia theo chủ đề để dễ học)
 
-Có sẵn 4 cấp **Bộ thủ** (các bộ thủ Hán tự thông dụng), chia theo nhóm nghĩa cho dễ nhớ:
+Có sẵn **10 cấp Bộ thủ** (~100 bộ thủ Hán tự thông dụng), chia theo nhóm nghĩa cho dễ nhớ:
 
 | Cấp | Nhóm | Ví dụ |
 |-----|------|-------|
@@ -121,12 +121,18 @@ Có sẵn 4 cấp **Bộ thủ** (các bộ thủ Hán tự thông dụng), chia
 | **Bộ thủ 2** | Thiên nhiên | 日 月 水 火 山 雨 … |
 | **Bộ thủ 3** | Động thực vật | 马 鱼 鸟 牛 竹 米 … |
 | **Bộ thủ 4** | Đồ vật & tính chất | 门 车 衣 食 金 大 小 … |
+| **Bộ thủ 5** | Cơ thể & sức khỏe | 骨 血 牙 齿 皮 身 肉 … |
+| **Bộ thủ 6** | Con người & hành động | 父 士 老 走 飞 行 … |
+| **Bộ thủ 7** | Động vật (mở rộng) | 犬 虎 龙 龟 鹿 角 贝 … |
+| **Bộ thủ 8** | Cây cỏ & khoáng vật | 麦 麻 瓜 谷 玉 王 … |
+| **Bộ thủ 9** | Đồ vật & công cụ (mở rộng) | 戈 斤 矛 舟 页 音 瓦 … |
+| **Bộ thủ 10** | Màu sắc & trừu tượng | 白 黑 青 赤 黄 色 文 高 … |
 
-- **Học bộ thủ:** trên app chọn nút cấp **“Bộ thủ 1…4”**, hoặc vào **Luyện tập → Học từ** rồi tick
-  cấp Bộ thủ ở màn chọn nguồn.
-- **Thêm bộ thủ:** mở `data/csv/BT1/words.csv` (…BT2, BT3, BT4) bằng Excel, thêm dòng, lưu, chạy build.
-- **Thêm một nhóm bộ thủ mới:** chép `data/csv/BT4/` → `data/csv/BT5/`, sửa nội dung, build → nút
-  “Bộ thủ 5” tự xuất hiện.
+- **Học bộ thủ:** trên app chọn nút cấp **“Bộ thủ 1…10”**, hoặc vào **Luyện tập → Học từ** rồi tick
+  các cấp Bộ thủ ở màn chọn nguồn.
+- **Thêm bộ thủ:** mở `data/csv/BT1/words.csv` (…BT2 … BT10) bằng Excel, thêm dòng, lưu, chạy build.
+- **Thêm một nhóm bộ thủ mới:** chép một thư mục `data/csv/BT10/` → `data/csv/BT11/`, sửa nội dung,
+  build → nút “Bộ thủ 11” tự xuất hiện.
 
 ---
 
@@ -194,7 +200,7 @@ data/
   csv/                          # ⇦ NƠI BẠN SỬA NỘI DUNG
     HSK1/  words.csv  conversations.csv  sentences.csv
     HSK2/  words.csv  conversations.csv  sentences.csv
-    BT1/ BT2/ BT3/ BT4/         # 4 cấp "Bộ thủ" (chỉ có words.csv)
+    BT1/ … BT10/                # 10 cấp "Bộ thủ" (chỉ có words.csv)
     _TEMPLATE/                  # mẫu để chép khi thêm cấp mới
     README.md                   # bản hướng dẫn biên soạn ngắn gọn
   registry.js, manifest.js      # TỰ SINH — đừng sửa tay

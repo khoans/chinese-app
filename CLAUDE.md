@@ -4,6 +4,32 @@ App học tiếng Trung HSK: **một file HTML** (`index.html`), vanilla JS,
 **không framework / không backend / không bước build lúc chạy**. Ràng buộc BẮT BUỘC: **chạy được
 trên `file://`** (double-click). Vì vậy KHÔNG dùng `fetch`/ES module để nạp dữ liệu.
 
+> 👤 **Người biên soạn nội dung (không cần lập trình): đừng đọc file này** — hãy dùng
+> [`README.md`](README.md), có hướng dẫn từng bước bằng Excel + ảnh mô tả. File `CLAUDE.md` là tài
+> liệu kỹ thuật cho lập trình viên / AI trợ lý.
+
+## 0. Chạy & kiểm nhanh (lệnh cụ thể)
+
+```bash
+# Mở app: nhấp đúp index.html (không cần server). Hoặc phục vụ tĩnh:
+#   npx serve .        (rồi mở http://localhost:3000)
+
+# Build lại dữ liệu sau khi sửa CSV (PowerShell 7 ưu tiên; Windows PowerShell 5.1 cũng chạy được):
+pwsh ./tools/build.ps1
+#   Windows, nếu bị chặn chính sách chạy script:
+#   powershell -ExecutionPolicy Bypass -File .\tools\build.ps1
+
+# Kiểm cú pháp các file .js sinh ra:
+node --check data/registry.js && node --check data/manifest.js
+for f in data/HSK*/*.js; do node --check "$f"; done
+
+# Mô phỏng nạp bằng Node + so khớp dữ liệu (không cần trình duyệt):
+node -e "global.window=global;global.self=global;const fs=require('fs'),vm=require('vm');
+['data/registry.js','data/manifest.js'].forEach(f=>vm.runInThisContext(fs.readFileSync(f,'utf8')));
+LEVELS.forEach(l=>vm.runInThisContext(fs.readFileSync('data/'+l+'/'+l.toLowerCase()+'.js','utf8')));
+console.log('words',HSKData.words().length,'sentences',HSKData.sentences().length,'topics',HSKData.topics().length);"
+```
+
 ## 1. Cơ chế nạp dữ liệu (chạy trên `file://`)
 
 Thứ tự nạp (đặt trong HTML, ngay trước phần JS chính):

@@ -1,4 +1,4 @@
-<#
+﻿<#
 ================================================================================
  tools/build.ps1  —  Sinh dữ liệu app tiếng Trung từ CSV
 --------------------------------------------------------------------------------
@@ -13,7 +13,10 @@
    5. Dọn rác: xoá thư mục cấp .js đã sinh nhưng CSV không còn.
    6. Tất cả .js sinh ra là UTF-8 KHÔNG BOM.
 
- Yêu cầu: PowerShell 7+ (pwsh). Không cần cài thêm gì trên Windows.
+ Chạy được với PowerShell 7 (pwsh) LẪN Windows PowerShell 5.1 (bản có sẵn trên Windows).
+
+ ⚠️ LƯU Ý CHO NGƯỜI SỬA FILE NÀY: phải lưu ở "UTF-8 CÓ BOM". Nếu lưu không BOM, Windows
+    PowerShell 5.1 sẽ đọc sai các dòng tiếng Việt và báo lỗi cú pháp khi "Run with PowerShell".
 ================================================================================
 #>
 

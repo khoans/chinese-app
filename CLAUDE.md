@@ -1,6 +1,6 @@
 # CLAUDE.md — Kiến trúc & quy ước dự án
 
-App học tiếng Trung HSK: **một file HTML** (`hoc-tieng-trung-hsk1-2_1.html`), vanilla JS,
+App học tiếng Trung HSK: **một file HTML** (`index.html`), vanilla JS,
 **không framework / không backend / không bước build lúc chạy**. Ràng buộc BẮT BUỘC: **chạy được
 trên `file://`** (double-click). Vì vậy KHÔNG dùng `fetch`/ES module để nạp dữ liệu.
 

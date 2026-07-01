@@ -4,7 +4,7 @@ Một app học tiếng Trung **thuần client-side** (vanilla JS, không framew
 không bước build lúc chạy). Mở được bằng cách **double-click file HTML** (`file://`) — không cần
 web server, không cần internet (trừ phần tập viết nét dùng thư viện `hanzi-writer` từ CDN).
 
-File app: **`hoc-tieng-trung-hsk1-2_1.html`**
+File app: **`index.html`**
 
 ---
 
@@ -30,7 +30,7 @@ và cấu trúc các tính năng học ở tab **“Luyện tập”**.
 
 ### Cây thư mục
 ```
-hoc-tieng-trung-hsk1-2_1.html   # app (1 file)
+index.html   # app (1 file)
 data/
   registry.js                   # registerLevel() + HSKData (NẠP ĐẦU TIÊN)
   manifest.js                   # TỰ SINH: var LEVELS = [...]

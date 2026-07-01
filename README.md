@@ -36,7 +36,8 @@ data/
   manifest.js                   # TỰ SINH: var LEVELS = [...]
   <LEVEL>/<level>.js            # TỰ SINH từ CSV (vd data/HSK1/hsk1.js)
   csv/<LEVEL>/words.csv         # NGUỒN DỮ LIỆU GỐC (người biên soạn sửa)
-  csv/<LEVEL>/conversations.csv
+  csv/<LEVEL>/conversations.csv # hội thoại (không bắt buộc)
+  csv/<LEVEL>/sentences.csv     # câu mẫu cho chế độ "Dịch câu" (không bắt buộc)
   csv/_TEMPLATE/                # mẫu để chép khi thêm cấp
   csv/README.md                 # hướng dẫn biên soạn
 tools/

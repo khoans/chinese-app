@@ -13,12 +13,15 @@ data/csv/
   HSK1/
     words.csv            ← từ vựng cấp HSK1
     conversations.csv    ← hội thoại cấp HSK1 (không bắt buộc)
+    sentences.csv        ← câu mẫu cho chế độ "Dịch câu" (không bắt buộc)
   HSK2/
     words.csv
     conversations.csv
+    sentences.csv
   _TEMPLATE/             ← thư mục mẫu, CHÉP khi thêm cấp mới
     words.csv
     conversations.csv
+    sentences.csv
 ```
 
 > ⚠️ Khi lưu bằng Excel, chọn định dạng **CSV UTF-8 (Comma delimited)** để chữ Hán không bị lỗi.
@@ -57,6 +60,29 @@ Mở `data/csv/<CẤP>/conversations.csv`. **Mỗi dòng là MỘT câu thoại*
 | `cau`      | câu (chữ Hán)                                      |
 | `pinyin`   | pinyin của câu                                    |
 | `nghia`    | nghĩa tiếng Việt                                  |
+
+---
+
+## 3b. Thêm CÂU MẪU cho chế độ "Dịch câu" (tuỳ chọn, DỄ MỞ RỘNG)
+
+Chế độ **Dịch câu** lấy câu từ 3 nguồn và gộp lại (tự bỏ trùng theo chữ Hán):
+1. Câu ví dụ của mỗi từ (`viDu` trong `words.csv`),
+2. Các dòng hội thoại (`conversations.csv`),
+3. **Câu mẫu độc lập trong `sentences.csv`** ← dùng khi bạn muốn **thêm thật nhiều câu**
+   cho một chủ đề mà KHÔNG phải gắn vào một từ vựng nào.
+
+Mở `data/csv/<CẤP>/sentences.csv`. Mỗi dòng là MỘT câu:
+
+| Cột      | Ý nghĩa                                            | Bắt buộc |
+|----------|-----------------------------------------------------|:--------:|
+| `cau`    | câu tiếng Trung (chữ Hán)                            | ✅ |
+| `pinyin` | pinyin của câu                                      |   |
+| `nghia`  | nghĩa tiếng Việt                                    |   |
+| `chuDe`  | chủ đề (gõ tự do; câu cùng `chuDe` gộp thành 1 nhóm) |   |
+
+> Muốn thêm 20 câu cùng chủ đề "Đồ ăn & Thức uống"? Chỉ việc gõ 20 dòng, cột `chuDe` đều ghi
+> "Đồ ăn & Thức uống", rồi chạy build. Chủ đề mới (nếu có) sẽ tự xuất hiện trong bộ lọc của
+> chế độ Dịch câu — không phải khai báo ở đâu khác.
 
 ---
 

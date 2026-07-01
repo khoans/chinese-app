@@ -1548,5 +1548,19 @@ registerLevel("HSK1", {
         }
       ]
     }
+  ],
+  "sentences": [
+    {
+      "zh": "今天天气很好。",
+      "py": "jīntiān tiānqì hěn hǎo 。",
+      "vi": "Hôm nay thời tiết rất đẹp.",
+      "topic": "Thời tiết & Sức khỏe"
+    },
+    {
+      "zh": "我想喝一杯咖啡。",
+      "py": "wǒ xiǎng hē yì bēi kāfēi 。",
+      "vi": "Tôi muốn uống một tách cà phê.",
+      "topic": "Đồ ăn & Thức uống"
+    }
   ]
 });

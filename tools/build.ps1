@@ -61,6 +61,7 @@ foreach ($levelFolder in $levelFolders) {
     $levelSlug = $levelName.ToLower()                 # vd "hsk1"
     $wordsCsvPath = Join-Path $levelFolder.FullName "words.csv"
     $convsCsvPath = Join-Path $levelFolder.FullName "conversations.csv"
+    $sentencesCsvPath = Join-Path $levelFolder.FullName "sentences.csv"
 
     if (-not (Test-Path $wordsCsvPath)) {
         Write-Warning "Bỏ qua cấp '$levelName': thiếu words.csv"
@@ -115,16 +116,34 @@ foreach ($levelFolder in $levelFolders) {
         }
     }
 
+    # --- Đọc câu độc lập (không bắt buộc): sentences.csv. Mỗi dòng = 1 câu cho chế độ Dịch câu ---
+    $sentenceObjects = [System.Collections.Generic.List[object]]::new()
+    if (Test-Path $sentencesCsvPath) {
+        $sentenceRows = @(Import-Csv -Path $sentencesCsvPath -Encoding utf8)
+        foreach ($srow in $sentenceRows) {
+            $cau = ("" + $srow.cau).Trim()
+            if ([string]::IsNullOrWhiteSpace($cau)) { continue }   # bỏ dòng trống
+            $sentenceObjects.Add([ordered]@{
+                zh    = $cau
+                py    = ("" + $srow.pinyin)
+                vi    = ("" + $srow.nghia)
+                topic = ("" + $srow.chuDe)
+            })
+        }
+    }
+
     # --- Sinh file cấp data/<LEVEL>/<level>.js ---
     $payload = [ordered]@{
         words         = $wordObjects
         conversations = $conversationObjects
+        sentences     = $sentenceObjects
     }
     # ConvertTo-Json giữ nguyên chữ Hán (UTF-8), escape an toàn nháy/backslash/xuống dòng.
     $payloadJson = $payload | ConvertTo-Json -Depth 12
     # ép mảng rỗng hiển thị đúng là [] (ConvertTo-Json đôi khi đưa null cho list rỗng)
     if ($wordObjects.Count -eq 0)         { $payloadJson = $payloadJson -replace '"words":\s*null', '"words": []' }
     if ($conversationObjects.Count -eq 0) { $payloadJson = $payloadJson -replace '"conversations":\s*null', '"conversations": []' }
+    if ($sentenceObjects.Count -eq 0)     { $payloadJson = $payloadJson -replace '"sentences":\s*null', '"sentences": []' }
 
     $header = "// TỰ ĐỘNG SINH từ data/csv/$levelName/*.csv — ĐỪNG SỬA TAY (chạy tools/build.ps1)."
     $levelJs = "$header`nregisterLevel(""$levelName"", $payloadJson);`n"
@@ -135,7 +154,7 @@ foreach ($levelFolder in $levelFolders) {
     Write-Utf8NoBom -Path $levelOutPath -Content $levelJs
 
     $orderedLevelNames += $levelName
-    $summaryLines += ("  {0,-8} {1,4} từ, {2,3} hội thoại" -f $levelName, $wordObjects.Count, $conversationObjects.Count)
+    $summaryLines += ("  {0,-8} {1,4} từ, {2,3} hội thoại, {3,4} câu" -f $levelName, $wordObjects.Count, $conversationObjects.Count, $sentenceObjects.Count)
 }
 
 # --- 4. Sinh data/manifest.js ---

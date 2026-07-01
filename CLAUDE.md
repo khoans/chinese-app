@@ -27,9 +27,11 @@ JS chính đọc dữ liệu qua `const WORDS = HSKData.words()`, `CONVS = HSKDa
 
 `tools/build.ps1` (PowerShell 7):
 1. Quét `data/csv/` tìm thư mục cấp (bỏ `_TEMPLATE`), thứ tự theo số trong tên.
-2. Đọc `words.csv` (+ `conversations.csv` nếu có), ánh xạ cột tiếng Việt → khoá nội bộ
+2. Đọc `words.csv` (+ `conversations.csv`, `sentences.csv` nếu có), ánh xạ cột tiếng Việt → khoá nội bộ
    (`chuHan→w, pinyin→p, nghia→m, viDu→ex, viDuPinyin→exp, viDuNghia→exm, chuDe→topic`;
-   hội thoại `cau→zh, pinyin→py, nghia→vi, nguoi→who`, gộp theo `hoiThoai`).
+   hội thoại `cau→zh, pinyin→py, nghia→vi, nguoi→who`, gộp theo `hoiThoai`;
+   câu độc lập `cau→zh, pinyin→py, nghia→vi, chuDe→topic`).
+   `registerLevel` nhận thêm mảng `sentences`; `HSKData.sentences()` trả về (đã gắn `lv`).
 3. Sinh `data/<LEVEL>/<level>.js` + `data/manifest.js` (UTF-8 **không BOM**).
 4. **Dọn rác** thư mục cấp không còn CSV. In tóm tắt.
 
@@ -50,8 +52,16 @@ Các module (đều là `const` trong phạm vi `<script>` chính):
   (đổi shape dữ liệu thì tăng hậu tố, đừng sửa ngầm).
 - **`Progress`**: thống kê theo **“khóa cấu hình học”** (`configKey = kind::direction::levels::topics`):
   mỗi mục lưu `correct/wrong/timeout/totalTimeMs/timedCount`; **streak** hiện tại/tốt nhất;
-  **lịch sử phiên**; **ghi chú** theo mục. Có `resetAll` / `clearConfig` / `clearHistory`.
-  - Khoá localStorage: `zh_progress_v1`, `zh_streak_v1`, `zh_history_v1`, `zh_notes_v1`, `zh_settings_v1`, `zh_trainConfig_v1`.
+  **lịch sử phiên**; **ghi chú** theo mục. Có `resetAll` / `clearConfig` / `clearHistory`;
+  `adjust(cfg,id,old,new)` + `setStreakCurrent` để **chấm lại thẻ trước** (đồng bộ thống kê).
+  - Khoá localStorage: `zh_progress_v1`, `zh_streak_v1`, `zh_notes_v1`, `zh_settings_v1`, `zh_trainConfig_v1`, `zh_mastered_v1`, `zh_sessions_v1`, `zh_autoAudio_v1`, `zh_appWidth_v1`.
+  - `Progress` giờ là **“bộ nhớ học” lâu dài** dùng cho thuật toán chọn (weak/unseen/mistakes),
+    không phải số liệu người dùng xem — số liệu người dùng xem nằm ở `Sessions` (theo phiên).
+- **`Mastered`**: tập mục “đã thuộc” (`zh_mastered_v1`, theo `itemId` toàn cục). `buildPool` loại
+  các mục đã thuộc nên chúng không xuất hiện khi luyện; quản lý được ở danh sách đã/chưa thuộc.
+- **`Sessions`** (`zh_sessions_v1`, tối đa 60): mỗi lần luyện = 1 **phiên**; lưu tổng
+  (đúng/sai/hết giờ, độ chính xác, TB thời gian, chuỗi tốt nhất), **thống kê theo từng mục**, và
+  chuỗi kết quả (cho biểu đồ). Trang **Thống kê** hiển thị theo phiên (chọn phiên để xem chi tiết).
 - **`Settings`**: công tắc **gõ đáp án** (bật/tắt), **đồng hồ đếm ngược**, thuật toán mặc định,
   và **phím tắt bind được** (lưu theo `event.code`).
 - **`selectNextItem(items, configKey, algorithm, lastItemId)`**: 4 thuật toán chọn mục —
@@ -60,9 +70,16 @@ Các module (đều là `const` trong phạm vi `<script>` chính):
 - **`normalizePinyin` / `meaningMatches`**: tự chấm — pinyin chấp nhận có/không dấu thanh, số
   thanh điệu (`hao3`), khoảng trắng tuỳ ý, `v`↔`ü`; nghĩa Việt bỏ dấu + so khớp theo phân đoạn.
 - **`Trainer`**: hai chế độ trên cùng nền — **Học từ** (`word`) và **Dịch câu** (`sentence`,
-  ngân hàng câu = ví dụ của từ + các dòng hội thoại). Có màn **chọn nguồn** (nhiều cấp + nhiều
+  ngân hàng câu `buildSentenceBank()` = câu độc lập `sentences.csv` + ví dụ của từ + các dòng
+  hội thoại; tự bỏ trùng theo chữ Hán). Có màn **chọn nguồn** (nhiều cấp + nhiều
   chủ đề + lọc + xem trước), **đổi chiều học**, **chỉ ôn lỗi sai**, **gõ đáp án tự chấm**, **ghi
-  chú**, **đồng hồ**, và **tổng kết + biểu đồ** cuối phiên.
+  chú**, **đồng hồ**, và **tổng kết + biểu đồ** cuối phiên. Khi hiện đáp án có 3 nút tự chấm
+  **Chấm sai / Chấm đúng / Đã thuộc**; chấm xong **tự qua thẻ mới**. **Đã thuộc** ghi nhận 1 lượt
+  đúng rồi ẩn mục khỏi phần luyện (`Mastered`). Có **“Thẻ trước”** để xem lại đáp án đã làm và
+  **chấm lại** (sửa đúng cả `Progress`, streak, và thống kê phiên). Có **danh sách đã/chưa thuộc**
+  để quản lý (tự cập nhật khi đánh dấu đã thuộc). Có **Tạm dừng** (không tính thời gian tạm dừng
+  vào thời gian trả lời) và **Kết thúc** (nút có màu phân biệt). Mỗi nút có phím tắt hiện **ngay
+  trên nút** (theo phím đang gán). Không còn nút “Bỏ qua”.
 - **`StatsPage`**: bảng thống kê theo mục (sắp xếp được), streak, lịch sử phiên, nút xóa/đặt lại.
 - **`SettingsPage`**: UI cho `Settings` + gán lại phím tắt; `installGlobalKeys()` gắn 1 handler
   `keydown` toàn cục (chỉ tác dụng khi đang ở tab Luyện tập; trong ô nhập chỉ `Enter`/`Esc`).

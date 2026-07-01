@@ -2045,5 +2045,6 @@ registerLevel("HSK2", {
       "topic": "Ngữ pháp & Liên từ"
     }
   ],
-  "conversations": []
+  "conversations": [],
+  "sentences": []
 });

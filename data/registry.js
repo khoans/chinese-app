@@ -15,13 +15,15 @@
   var registeredLevels = [];          // ["HSK1","HSK2",...]
   var wordsByLevel = {};              // { HSK1: [word,...], ... }
   var conversationsByLevel = {};      // { HSK1: [conv,...], ... }
+  var sentencesByLevel = {};          // { HSK1: [sentence,...], ... } — câu độc lập cho chế độ Dịch câu
 
   /**
    * registerLevel — mỗi file cấp tự sinh gọi hàm này đúng một lần.
    * @param {string} level  Ví dụ "HSK1".
-   * @param {{words:Array, conversations:Array}} payload
+   * @param {{words:Array, conversations:Array, sentences:Array}} payload
    *   Mỗi từ: { w, p, m, ex, exp, exm, topic }  (KHÔNG cần "lv" — tự gắn ở đây)
    *   Mỗi hội thoại: { title, icon, lines:[{who,zh,py,vi}] }
+   *   Mỗi câu độc lập: { zh, py, vi, topic }  (cho chế độ Dịch câu; KHÔNG cần "lv")
    */
   function registerLevel(level, payload) {
     payload = payload || {};
@@ -44,6 +46,15 @@
       return copy;
     });
     conversationsByLevel[level] = levelConversations;
+
+    // Câu độc lập (sentences.csv) — gắn cấp để chế độ Dịch câu lọc được theo cấp.
+    var levelSentences = (payload.sentences || []).map(function (sentence) {
+      var copy = {};
+      for (var key in sentence) if (Object.prototype.hasOwnProperty.call(sentence, key)) copy[key] = sentence[key];
+      copy.lv = level;
+      return copy;
+    });
+    sentencesByLevel[level] = levelSentences;
   }
 
   var HSKData = {
@@ -67,6 +78,16 @@
       var all = [];
       registeredLevels.forEach(function (level) {
         var list = conversationsByLevel[level] || [];
+        for (var i = 0; i < list.length; i++) all.push(list[i]);
+      });
+      return all;
+    },
+
+    /** Tất cả câu độc lập (đã gắn sentence.lv), gộp theo thứ tự cấp — cho chế độ Dịch câu. */
+    sentences: function () {
+      var all = [];
+      registeredLevels.forEach(function (level) {
+        var list = sentencesByLevel[level] || [];
         for (var i = 0; i < list.length; i++) all.push(list[i]);
       });
       return all;

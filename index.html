@@ -458,9 +458,16 @@ const CONVS  = HSKData.conversations();  // hội thoại gộp từ mọi cấp
 const TOPICS = HSKData.topics();         // chủ đề tự suy ra theo thứ tự xuất hiện
 document.getElementById('totalN').textContent = WORDS.length;
 document.getElementById('topicN').textContent = TOPICS.length;
-/* Nhãn hiển thị cho một cấp: HSK1->"HSK 1", BT1->"Bộ thủ 1", còn lại giữ nguyên. Thêm cấp kiểu khác
-   chỉ cần bổ sung một dòng ở đây (không bắt buộc — mặc định vẫn hiện đúng mã cấp). */
+/* Nhãn hiển thị cho một cấp. Thêm cấp kiểu khác chỉ cần bổ sung một dòng ở đây
+   (không bắt buộc — mặc định vẫn hiện đúng mã cấp).
+   - HSK1 -> "HSK 1"; BT1 -> "Bộ thủ 1" (100 bộ thông dụng theo nghĩa);
+   - KX1..KX6 -> "214 bộ · N nét" (đủ 214 bộ Khang Hy theo số nét). */
+const LEVEL_LABELS={
+  KX1:'214 bộ · 1–2 nét', KX2:'214 bộ · 3 nét', KX3:'214 bộ · 4 nét',
+  KX4:'214 bộ · 5–6 nét', KX5:'214 bộ · 7–9 nét', KX6:'214 bộ · 10+ nét',
+};
 function levelLabel(lv){
+  if(LEVEL_LABELS[lv]) return LEVEL_LABELS[lv];
   if(/^HSK\d/.test(lv)) return lv.replace(/^HSK/,'HSK ');
   if(/^BT\d/.test(lv))  return 'Bộ thủ '+lv.slice(2);
   return lv;

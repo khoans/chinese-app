@@ -134,6 +134,24 @@ Có sẵn **10 cấp Bộ thủ** (~100 bộ thủ Hán tự thông dụng), chi
 - **Thêm một nhóm bộ thủ mới:** chép một thư mục `data/csv/BT10/` → `data/csv/BT11/`, sửa nội dung,
   build → nút “Bộ thủ 11” tự xuất hiện.
 
+### Bộ đầy đủ 214 bộ Khang Hy (theo số nét) — độc lập
+
+Ngoài 10 cấp “Bộ thủ” theo nghĩa ở trên, còn có bộ **đầy đủ 214 bộ thủ Khang Hy** xếp **theo số
+nét**, để tra cứu/học có hệ thống. **Hai phần độc lập** — bạn chọn học phần nào cũng được:
+
+| Cấp (trên app) | Gồm |
+|-----|-----|
+| **214 bộ · 1–2 nét** | 一 丨 丶 乙 二 人 儿 八 刀 力 十 又 … |
+| **214 bộ · 3 nét** | 口 土 大 女 子 山 巾 弓 … |
+| **214 bộ · 4 nét** | 心 手 日 月 木 水 火 牛 犬 … |
+| **214 bộ · 5–6 nét** | 玉 田 目 石 竹 米 耳 舟 虫 … |
+| **214 bộ · 7–9 nét** | 見 言 走 足 車 金 門 雨 頁 風 食 … |
+| **214 bộ · 10+ nét** | 馬 骨 高 魚 鳥 鹿 黑 鼻 齒 龍 龜 龠 |
+
+- Dùng **dạng chữ Khang Hy chuẩn** (một số bộ ở dạng phồn thể như 見 車 馬 龍) và **không kèm câu
+  ví dụ** (đây là bảng tra bộ thủ). Cột `chuDe` là **số nét** (vd “5 nét”) để lọc.
+- Sửa/thêm: `data/csv/KX1/words.csv` … `KX6/words.csv`.
+
 ---
 
 ## Phần 4 — Ý nghĩa các cột trong CSV
@@ -200,7 +218,8 @@ data/
   csv/                          # ⇦ NƠI BẠN SỬA NỘI DUNG
     HSK1/  words.csv  conversations.csv  sentences.csv
     HSK2/  words.csv  conversations.csv  sentences.csv
-    BT1/ … BT10/                # 10 cấp "Bộ thủ" (chỉ có words.csv)
+    BT1/ … BT10/                # 10 cấp "Bộ thủ" theo nghĩa (100 bộ thông dụng)
+    KX1/ … KX6/                 # 214 bộ Khang Hy theo số nét (độc lập)
     _TEMPLATE/                  # mẫu để chép khi thêm cấp mới
     README.md                   # bản hướng dẫn biên soạn ngắn gọn
   registry.js, manifest.js      # TỰ SINH — đừng sửa tay

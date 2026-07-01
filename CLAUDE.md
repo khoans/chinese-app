@@ -33,13 +33,15 @@ console.log('words',HSKData.words().length,'sentences',HSKData.sentences().lengt
 ## 0b. Cấp độ & nhãn hiển thị
 
 - Mỗi thư mục con trong `data/csv/` (trừ `_TEMPLATE`) là một **cấp**. Mã cấp = tên thư mục
-  (vd `HSK1`, `BT1`). `build.ps1` sắp: **HSK trước** (theo số 1..6), rồi các cấp khác theo số
-  (vd `BT1..BT4` = radical/Bộ thủ), tên không số xếp cuối — xem `Get-LevelSortKey`.
-- App hiển thị nhãn thân thiện qua `levelLabel(lv)`: `HSK1→"HSK 1"`, `BT1→"Bộ thủ 1"`, còn lại
-  giữ nguyên mã. Thêm kiểu cấp mới với nhãn riêng = thêm 1 dòng trong `levelLabel` (không bắt buộc).
-- **Bộ thủ** hiện là 4 cấp `BT1..BT4` chia theo nhóm nghĩa (Người & cơ thể / Thiên nhiên /
-  Động thực vật / Đồ vật & tính chất), đặt ở cột `chuDe`. Chúng là từ vựng bình thường (có `lv`),
-  nên mọi chế độ (thẻ, trắc nghiệm, Luyện tập…) dùng được ngay.
+  (vd `HSK1`, `BT1`, `KX1`). `build.ps1` sắp theo band: **HSK** (số 1..6) → **BT** (1000+n) →
+  **KX** (2000+n) → khác (3000+n) → không số (cuối) — xem `Get-LevelSortKey`.
+- App hiển thị nhãn thân thiện qua `levelLabel(lv)` + bảng `LEVEL_LABELS`:
+  `HSK1→"HSK 1"`, `BT1→"Bộ thủ 1"`, `KX1→"214 bộ · 1–2 nét"`. Thêm cấp kiểu khác = thêm 1 dòng.
+- **Bộ thủ có hai phần độc lập:**
+  - `BT1..BT10` — ~100 bộ **thông dụng**, chia theo **nghĩa** (cột `chuDe` = tên nhóm), có ví dụ.
+  - `KX1..KX6` — đủ **214 bộ Khang Hy**, chia theo **số nét** (cột `chuDe` = "N nét"), dạng chữ
+    Khang Hy chuẩn (một số phồn thể), **không có ví dụ** (`ex` rỗng → app tự ẩn khung ví dụ).
+  - Cả hai là từ vựng bình thường (có `lv`) nên mọi chế độ dùng được ngay.
 
 ## 1. Cơ chế nạp dữ liệu (chạy trên `file://`)
 

@@ -185,6 +185,8 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);line-height:1.5;marg
 .topicgroup{border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:var(--card2)}
 .topicgroup-head{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:8px;display:flex;align-items:center;gap:7px}
 .topicgroup-count{background:var(--paper2);border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700;color:var(--ink2)}
+.topicgroup-all{margin-left:auto;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:3px 10px;font:inherit;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink2);cursor:pointer;transition:.12s}
+.topicgroup-all.on{background:var(--jade);color:#f6f0e2;border-color:transparent}
 .chip{border:1px solid var(--line);background:var(--paper2);border-radius:999px;padding:7px 13px;font:inherit;font-weight:600;font-size:12.5px;color:var(--ink2);cursor:pointer;transition:.12s;user-select:none}
 .chip.on{background:var(--jade);color:#f6f0e2;border-color:transparent}
 .chip.mini{padding:5px 10px;font-size:11.5px}
@@ -1190,13 +1192,28 @@ const Trainer=(function(){
       if(!groups.length){ box.innerHTML='<div class="tqsub" style="padding:6px 2px">Chọn cấp độ ở trên để hiện chủ đề của cấp đó.</div>'; return; }
       box.innerHTML=groups.map(g=>`
         <div class="topicgroup">
-          <div class="topicgroup-head">${esc(g.label)}<span class="topicgroup-count">${g.topics.length}</span></div>
+          <div class="topicgroup-head">${esc(g.label)}<span class="topicgroup-count">${g.topics.length}</span><button class="topicgroup-all" data-role="allTopics" type="button">Chọn tất cả</button></div>
           <div class="chips">${g.topics.map(t=>`<button class="chip mini${cfg.topics.indexOf(topicKey(g.lv,t))>=0?' on':''}" data-lv="${esc(g.lv)}" data-topic="${esc(t)}">${esc(t)}</button>`).join('')}</div>
         </div>`).join('');
+      box.querySelectorAll('.topicgroup').forEach(updateAllBtn);
       applyTopicFilter();
     };
-    // click chủ đề (uỷ quyền vì chip được dựng lại mỗi khi đổi cấp)
-    q('[data-role=topics]').addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b)return; b.classList.toggle('on'); updatePreview(); });
+    // nhãn nút "Chọn tất cả / Bỏ chọn tất cả" theo trạng thái các chip của nhóm
+    const updateAllBtn=(group)=>{
+      const btn=group.querySelector('[data-role=allTopics]'); if(!btn)return;
+      const chips=[...group.querySelectorAll('.chip')];
+      const allOn=chips.length>0 && chips.every(c=>c.classList.contains('on'));
+      btn.textContent=allOn?'Bỏ chọn tất cả':'Chọn tất cả'; btn.classList.toggle('on',allOn);
+    };
+    // click trong vùng chủ đề: nút "chọn tất cả" của nhóm, hoặc từng chip (uỷ quyền vì được dựng lại)
+    q('[data-role=topics]').addEventListener('click',e=>{
+      const allBtn=e.target.closest('[data-role=allTopics]');
+      if(allBtn){ const group=allBtn.closest('.topicgroup'); const chips=[...group.querySelectorAll('.chip')];
+        const everyOn=chips.length>0 && chips.every(c=>c.classList.contains('on'));
+        chips.forEach(c=>c.classList.toggle('on',!everyOn)); updateAllBtn(group); updatePreview(); return; }
+      const b=e.target.closest('.chip'); if(!b)return;
+      b.classList.toggle('on'); updateAllBtn(b.closest('.topicgroup')); updatePreview();
+    });
     // click cấp -> dựng lại danh sách chủ đề của các cấp đang chọn
     panel.querySelectorAll('[data-role=levels] .chip').forEach(chip=>{
       chip.onclick=()=>{ chip.classList.toggle('on'); readCfg(); renderTopicChips(); updatePreview(); };

@@ -261,6 +261,11 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);line-height:1.5;marg
 .notewrap{display:flex;flex-direction:column;gap:5px}
 .notewrap textarea{font:inherit;font-size:13px;color:var(--ink);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px;width:100%;resize:vertical;min-height:40px}
 .statline{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:12px;font-weight:600;color:var(--ink2)}
+.sessionstats{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:12px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.sessionstats>div{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sessionstats span{color:var(--ink3);font-weight:600}
+.sessionstats b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media(max-width:420px){.sessionstats{grid-template-columns:1fr}}
 .countdown{font-variant-numeric:tabular-nums}
 
 /* stats table + chart */
@@ -942,12 +947,13 @@ const Sessions=(function(){
 
 /* ---------- Settings: công tắc gõ, đồng hồ, thuật toán mặc định, phím tắt ---------- */
 const Settings=(function(){
-  const DEFAULT_KEYS={reveal:'Space',correct:'Digit1',wrong:'Digit2',mastered:'Digit3',speak:'KeyP',pause:'KeyH',end:'Escape'};
+  const DEFAULT_KEYS={reveal:'Space',correct:'Digit1',wrong:'Digit2',mastered:'Digit3',redo:'KeyR',speak:'KeyP',pause:'KeyH',end:'Escape'};
   const KEY_ACTIONS=[
     {id:'reveal',label:'Hiện đáp án'},
     {id:'correct',label:'Chấm ĐÚNG'},
     {id:'wrong',label:'Chấm SAI'},
     {id:'mastered',label:'Đã thuộc'},
+    {id:'redo',label:'Làm lại (không tính)'},
     {id:'speak',label:'Đọc phát âm'},
     {id:'pause',label:'Tạm dừng / tiếp'},
     {id:'end',label:'Kết thúc phiên'},
@@ -956,6 +962,7 @@ const Settings=(function(){
   if(s.typingOn===undefined)s.typingOn=true;
   if(s.timerOn===undefined)s.timerOn=false;
   if(!s.timerSec)s.timerSec=15;
+  if(s.sessionLimit===undefined)s.sessionLimit=0;   // 0 = không giới hạn số câu/phiên
   if(!s.algorithm)s.algorithm='weak';
   s.keys=Object.assign({},DEFAULT_KEYS,s.keys||{});
   function save(){Store.save('settings',s);}
@@ -1288,17 +1295,22 @@ const Trainer=(function(){
 
   /* ---------- MÀN HÌNH LUYỆN ---------- */
   function startSession(kind,cfg,pool,panel){
+    const limit=Settings.data.sessionLimit>0?Settings.data.sessionLimit:0;
     active={
       kind,cfg,cfgKey:configKey(kind,cfg),panel,pool,
       current:null,lastId:null,revealed:false,graded:false,startTime:0,timer:null,remain:0,
       paused:false,   // trạng thái tạm dừng
+      redoFree:false, // thẻ hiện tại đang ở chế độ "làm lại" (không tính thống kê)
       previous:null,  // thẻ vừa chấm (để xem lại + chấm lại)
+      limit,          // 0 = không giới hạn số câu
+      startPoolSize:pool.length,   // tổng số mục trong bộ khi bắt đầu (cho "đã gặp X/Y")
+      seen:new Set(), // các mục ĐÃ GẶP trong phiên (để tính % + ưu tiên chưa xuất hiện)
       // MỘT PHIÊN: thống kê gắn theo phiên này (số liệu, streak, thời gian, theo từng mục)
       session:{
         id:Sessions.newId(), startTime:Date.now(), kind, direction:cfg.direction,
         levels:cfg.levels.slice(), topics:cfg.topics.slice(),
         correct:0,wrong:0,timeout:0,times:[],sequence:[],
-        items:{}, streak:{current:0,best:0},
+        items:{}, streak:{current:0,best:0,previous:0},
       },
     };
     renderPracticeShell(panel,kind,cfg);
@@ -1307,17 +1319,19 @@ const Trainer=(function(){
 
   // Ghi/điều chỉnh thống kê THEO PHIÊN (song song với "bộ nhớ học" lâu dài cho thuật toán chọn).
   function sessionRecord(itemId,outcome,answerTimeMs){
-    const sess=active.session;
+    const sess=active.session, st=sess.streak;
     const it=sess.items[itemId]||(sess.items[itemId]={correct:0,wrong:0,timeout:0,totalTimeMs:0,timedCount:0});
     it[outcome]++; if(answerTimeMs>0){it.totalTimeMs+=answerTimeMs;it.timedCount++;}
-    if(outcome==='correct'){sess.streak.current++; if(sess.streak.current>sess.streak.best)sess.streak.best=sess.streak.current;}
-    else sess.streak.current=0;
+    if(outcome==='correct'){st.current++; if(st.current>st.best)st.best=st.current;}
+    else { if(st.current>0)st.previous=st.current; st.current=0; }   // lưu "chuỗi trước đó"
   }
   function sessionAdjust(itemId,oldOutcome,newOutcome,sessionStreakBefore){
+    const st=active.session.streak;
     const it=active.session.items[itemId];
     if(it){ if(it[oldOutcome]>0)it[oldOutcome]--; it[newOutcome]++; }
-    active.session.streak.current=Math.max(0,newOutcome==='correct'?sessionStreakBefore+1:0);
-    if(active.session.streak.current>active.session.streak.best)active.session.streak.best=active.session.streak.current;
+    if(newOutcome!=='correct' && sessionStreakBefore>0)st.previous=sessionStreakBefore;
+    st.current=Math.max(0,newOutcome==='correct'?sessionStreakBefore+1:0);
+    if(st.current>st.best)st.best=st.current;
   }
 
   // Nhãn phím tắt hiển thị NGAY TRÊN nút (cập nhật theo phím đang gán).
@@ -1329,9 +1343,11 @@ const Trainer=(function(){
         <span data-role="deck"></span>
         <span data-role="timer" class="countdown"></span>
       </div>
-      <div class="statline">
-        <span data-role="score">Đúng 0 · Sai 0</span>
-        <span data-role="streak">Chuỗi: 0</span>
+      <div class="sessionstats" data-role="sessionStats">
+        <div><span>Đã gặp (phiên này)</span><b data-role="ssSeen">0 / 0 (0%)</b></div>
+        <div><span>Đúng · Sai</span><b data-role="ssScore">0 · 0</b></div>
+        <div><span>Đã thuộc · Còn lại</span><b data-role="ssMaster">0 · 0</b></div>
+        <div><span>Chuỗi · Trước · Dài nhất</span><b data-role="ssStreak">0 · 0 · 0</b></div>
       </div>
       <div class="traincard">
         <div class="tqprompt" data-role="prompt"></div>
@@ -1353,6 +1369,7 @@ const Trainer=(function(){
         <button class="btn dark" data-role="markMastered" type="button">★ Đã thuộc ${keyTag('mastered')}</button>
       </div>
       <div class="notewrap"><textarea data-role="note" placeholder="Ghi chú cho mục này…"></textarea></div>
+      <div class="row"><button class="btn" data-role="redo" type="button">↻ Làm lại — không tính ${keyTag('redo')}</button></div>
       <div class="prevcard hidden" data-role="previous"></div>
       <div class="masterbox hidden" data-role="masterListBox"></div>
       <div class="row"><button class="btn" data-role="masterList" type="button">📋 Đã/chưa thuộc</button></div>
@@ -1364,6 +1381,7 @@ const Trainer=(function(){
     q('[data-role=markCorrect]').onclick=()=>gradeAndAdvance('correct');
     q('[data-role=markWrong]').onclick=()=>gradeAndAdvance('wrong');
     q('[data-role=markMastered]').onclick=()=>gradeAndAdvance('correct',{master:true});
+    q('[data-role=redo]').onclick=()=>redoCurrent();
     q('[data-role=pause]').onclick=()=>togglePause();
     q('[data-role=end]').onclick=()=>endSession();
     q('[data-role=masterList]').onclick=()=>toggleMasterList();
@@ -1390,11 +1408,23 @@ const Trainer=(function(){
     }
   }
 
+  // Chọn mục kế: "ngẫu nhiên đều" khi qua 40% phiên sẽ ưu tiên mục CHƯA XUẤT HIỆN trong phiên.
+  function pickNextItem(){
+    const algo=active.cfg.algorithm;
+    const answered=active.session.correct+active.session.wrong+active.session.timeout;
+    const total=active.limit>0?active.limit:active.startPoolSize;
+    if(algo==='uniform' && total>0 && answered>=Math.ceil(total*0.4)){
+      const unseen=active.pool.filter(it=>!active.seen.has(it.id) && it.id!==active.lastId);
+      if(unseen.length)return unseen[(Math.random()*unseen.length)|0];
+    }
+    return selectNextItem(active.pool,active.cfgKey,algo,active.lastId);
+  }
   function nextItem(){
     if(!active)return;
-    const item=selectNextItem(active.pool,active.cfgKey,active.cfg.algorithm,active.lastId);
+    const item=pickNextItem();
     if(!item){endSession();return;}
-    active.current=item; active.lastId=item.id; active.revealed=false; active.graded=false; active.startTime=Date.now();
+    active.current=item; active.lastId=item.id; active.redoFree=false; active.revealed=false; active.graded=false; active.startTime=Date.now();
+    active.seen.add(item.id);   // đánh dấu ĐÃ GẶP trong phiên
     const view=toItemView(item,active.kind,active.cfg.direction);
     active.view=view;
     const panel=active.panel, q=sel=>panel.querySelector(sel);
@@ -1464,6 +1494,12 @@ const Trainer=(function(){
     opts=opts||{};
     active.graded=true; stopTimer();
     const item=active.current, view=active.view;
+    // "Làm lại": thẻ này KHÔNG tính vào thống kê (nhưng vẫn cho đánh dấu đã thuộc nếu bấm) -> qua thẻ mới.
+    if(active.redoFree){
+      if(opts.master){ Mastered.add(item.id); removeFromPool(item.id); }
+      active.previous=null;
+      nextItem(); refreshMasterList(); return;
+    }
     const answerTimeMs=Date.now()-active.startTime;
     const streakBefore=Progress.streakOf(active.cfgKey).current;
     const sessionStreakBefore=active.session.streak.current;
@@ -1475,8 +1511,23 @@ const Trainer=(function(){
     sess.sequence.push(outcome);
     if(opts.master){ Mastered.add(item.id); removeFromPool(item.id); }
     active.previous={item,view,outcome,master:!!opts.master,streakBefore,sessionStreakBefore,seqIndex:sess.sequence.length-1,cfgKey:active.cfgKey};
+    // Giới hạn số câu/phiên -> đủ thì kết thúc phiên
+    const answered=sess.correct+sess.wrong+sess.timeout;
+    if(active.limit>0 && answered>=active.limit){ endSession(); return; }
     nextItem();
     refreshMasterList();   // nếu danh sách đã/chưa thuộc đang mở -> cập nhật ngay
+  }
+
+  // "Làm lại" thẻ hiện tại: không tính thống kê, thử lại bao nhiêu lần tuỳ ý.
+  function redoCurrent(){
+    if(!active||!active.current||active.paused)return;
+    active.redoFree=true; active.graded=false; active.revealed=false; active.startTime=Date.now();
+    const panel=active.panel, q=sel=>panel.querySelector(sel);
+    q('[data-role=answer]').classList.remove('show');
+    q('[data-role=grade]').classList.remove('show');
+    const fb=q('[data-role=feedback]'); fb.className='tfeedback tqsub'; fb.textContent='↻ Làm lại — thẻ này sẽ KHÔNG tính vào thống kê.';
+    const input=q('[data-role=input]'); if(Settings.data.typingOn){ input.style.display=''; input.value=''; input.disabled=false; setTimeout(()=>input.focus(),20); }
+    startTimer();
   }
 
   function removeFromPool(itemId){ if(!active||!active.pool)return; const i=active.pool.findIndex(x=>x.id===itemId); if(i>=0)active.pool.splice(i,1); }
@@ -1654,10 +1705,19 @@ const Trainer=(function(){
 
   function updateStatline(){
     if(!active)return;
-    const panel=active.panel,q=sel=>panel.querySelector(sel),sess=active.session;
-    q('[data-role=deck]').textContent='Còn '+active.pool.length+' · đã làm '+(sess.correct+sess.wrong+sess.timeout);
-    q('[data-role=score]').textContent='Đúng '+sess.correct+' · Sai '+(sess.wrong+sess.timeout);
-    q('[data-role=streak]').textContent='Chuỗi phiên: '+sess.streak.current+' (tốt nhất '+sess.streak.best+')';
+    const panel=active.panel,q=sel=>panel.querySelector(sel),sess=active.session,st=sess.streak;
+    const answered=sess.correct+sess.wrong+sess.timeout;
+    // dòng đầu: câu đã làm (/giới hạn nếu có)
+    q('[data-role=deck]').textContent='Câu đã làm: '+answered+(active.limit>0?(' / '+active.limit):'');
+    // "Đã gặp" = số mục KHÁC NHAU đã hiện trong phiên / tổng số mục của bộ
+    const seenN=active.seen?active.seen.size:0, total=active.startPoolSize||0;
+    q('[data-role=ssSeen]').textContent=seenN+' / '+total+' ('+(total?Math.round(seenN/total*100):0)+'%)';
+    q('[data-role=ssScore]').textContent=sess.correct+' · '+(sess.wrong+sess.timeout);
+    // đã thuộc trong bộ nguồn · còn lại (chưa thuộc, còn trong pool)
+    const source=buildSourceItems(active.kind,active.cfg);
+    const masteredN=source.filter(it=>Mastered.has(it.id)).length;
+    q('[data-role=ssMaster]').textContent=masteredN+' · '+active.pool.length;
+    q('[data-role=ssStreak]').textContent=st.current+' · '+(st.previous||0)+' · '+st.best;
   }
 
   function endSession(){
@@ -1707,6 +1767,7 @@ const Trainer=(function(){
     if(action==='correct'){gradeAndAdvance('correct');return true;}
     if(action==='wrong'){gradeAndAdvance('wrong');return true;}
     if(action==='mastered'){gradeAndAdvance('correct',{master:true});return true;}
+    if(action==='redo'){redoCurrent();return true;}
     if(action==='speak'){speak(active.view.speakText);return true;}
     if(action==='end'){endSession();return true;}
     return false;
@@ -1800,6 +1861,9 @@ const SettingsPage=(function(){
         <label>Thời gian đếm ngược (giây)
           <input type="text" inputmode="numeric" data-role="timerSec" value="${Settings.data.timerSec}">
         </label>
+        <label>Số câu mỗi phiên (0 = không giới hạn)
+          <input type="text" inputmode="numeric" data-role="sessionLimit" value="${Settings.data.sessionLimit}">
+        </label>
         <label>Thuật toán chọn mục mặc định
           <select data-role="algorithm">
             <option value="weak"${Settings.data.algorithm==='weak'?' selected':''}>Ưu tiên mục yếu</option>
@@ -1820,6 +1884,7 @@ const SettingsPage=(function(){
     q('[data-role=typing]').onchange=e=>{Settings.data.typingOn=e.target.checked;Settings.save();};
     q('[data-role=timer]').onchange=e=>{Settings.data.timerOn=e.target.checked;Settings.save();};
     q('[data-role=timerSec]').onchange=e=>{const n=parseInt(e.target.value,10);Settings.data.timerSec=(n>0&&n<600)?n:15;e.target.value=Settings.data.timerSec;Settings.save();};
+    q('[data-role=sessionLimit]').onchange=e=>{let n=parseInt(e.target.value,10);Settings.data.sessionLimit=(n>0&&n<10000)?n:0;e.target.value=Settings.data.sessionLimit;Settings.save();};
     q('[data-role=algorithm]').onchange=e=>{Settings.data.algorithm=e.target.value;Settings.save();};
     q('[data-role=resetKeys]').onclick=()=>{Settings.resetKeys();listeningAction=null;render();};
     panel.querySelectorAll('.keycap').forEach(cap=>{

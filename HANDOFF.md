@@ -205,7 +205,8 @@ chế độ Dịch câu.
   người dùng xem**. Mỗi phiên: `{id, time, endTime, kind, direction, levels, topics, correct,
   wrong, timeout, accuracy, avgTimeMs, bestStreak, items:{itemId:{...}}, sequence:[...]}`.
   Trang **Thống kê** hiển thị theo phiên (chọn phiên → bảng theo mục + biểu đồ).
-- **`Settings`** (`zh_settings_v1`) — `{typingOn, timerOn, timerSec, algorithm, keys:{...}}`.
+- **`Settings`** (`zh_settings_v1`) — `{typingOn, timerOn, timerSec, sessionLimit, algorithm, keys:{...}}`.
+  `sessionLimit` = số câu tối đa mỗi phiên (0 = không giới hạn). `keys` gồm cả `redo` (mặc định `KeyR`).
 - **`Trainer`** — máy luyện cho cả `word` và `sentence`. Trạng thái phiên trong `active`. Luồng:
   - **Màn chọn nguồn** (`renderSetup`): chọn nhiều cấp + nhiều chủ đề + đổi chiều + thuật toán +
     "chỉ ôn lỗi sai" + công tắc gõ + đồng hồ + **quản lý đã/chưa thuộc (shuttle 2 bảng)**. **Xem trước = BẢNG**
@@ -219,8 +220,12 @@ chế độ Dịch câu.
   - **Màn luyện** (`renderPracticeShell`): prompt → (gõ đáp án hoặc "Hiện đáp án") → **3 nút tự
     chấm** ✗ Chấm sai / ✓ Chấm đúng / ★ Đã thuộc → `gradeAndAdvance()` ghi thống kê + **tự qua thẻ
     mới**. **"Thẻ trước"** (`renderPrevious`/`reGrade`) cho xem lại & **chấm lại** (sửa đúng cả
-    `Progress`, streak, thống kê phiên). **Tạm dừng** (`togglePause`, không tính thời gian dừng) +
-    **Kết thúc** (nút có màu). Ghi chú từng mục. Đồng hồ đếm ngược tuỳ chọn.
+    `Progress`, streak, thống kê phiên). **Tạm dừng** + **Kết thúc**. Ghi chú từng mục. Đồng hồ tuỳ chọn.
+    **↻ Làm lại** (`redoCurrent`, phím `R`): thử lại thẻ hiện tại KHÔNG tính thống kê, bao nhiêu lần
+    tuỳ ý (`active.redoFree` → `gradeAndAdvance` bỏ qua ghi nhận). **Giới hạn số câu/phiên**: đạt
+    `active.limit` (từ `Settings.sessionLimit`) → tự `endSession`. Thống kê hiện khi luyện (`updateStatline`):
+    **Đã gặp** X/Y (distinct `active.seen`/`startPoolSize`), **Đã thuộc·Còn lại**, **Chuỗi·Trước·Dài nhất**
+    (`session.streak.current/previous/best`).
   - **Tổng kết** (`endSession`): lưu phiên vào `Sessions`, hiện summary + biểu đồ.
 - **`StatsPage`** — trang Thống kê theo **phiên** (dropdown phiên, bảng theo mục sắp xếp được,
   biểu đồ, nút xoá tất cả).
@@ -233,7 +238,8 @@ chế độ Dịch câu.
 - **`selectNextItem(items, configKey, algorithm, lastId)`** — 4 thuật toán: `uniform` (đều),
   `unseen` (ưu tiên chưa gặp), `least` (gặp ít nhất), `weak` (ưu tiên mục yếu: trọng số theo tỉ lệ
   sai + thời gian trả lời TB; mục chưa có dữ liệu = trọng số vừa phải). **Luôn tránh lặp lại ngay**
-  mục vừa hiện.
+  mục vừa hiện. Riêng khi luyện, `pickNextItem()` bọc thêm: nếu `uniform` và đã qua **40%** số câu
+  phiên (theo `limit` hoặc `startPoolSize`) thì ưu tiên mục **chưa xuất hiện trong phiên** (`active.seen`).
 - **`normalizePinyin`** — chấp nhận có/không dấu thanh, **số thanh điệu** (`hao3`), khoảng trắng
   tuỳ ý, `v`↔`ü`. **`meaningMatches`** — nghĩa Việt bỏ dấu + so khớp theo phân đoạn (`,` `;` `/`).
 

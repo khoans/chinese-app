@@ -108,7 +108,8 @@ Các module (đều là `const` trong phạm vi `<script>` chính):
 - **`Sessions`** (`zh_sessions_v1`, tối đa 60): mỗi lần luyện = 1 **phiên**; lưu tổng
   (đúng/sai/hết giờ, độ chính xác, TB thời gian, chuỗi tốt nhất), **thống kê theo từng mục**, và
   chuỗi kết quả (cho biểu đồ). Trang **Thống kê** hiển thị theo phiên (chọn phiên để xem chi tiết).
-- **`Settings`**: công tắc **gõ đáp án** (bật/tắt), **đồng hồ đếm ngược**, thuật toán mặc định,
+- **`Settings`**: công tắc **gõ đáp án** (bật/tắt), **đồng hồ đếm ngược**, **số câu mỗi phiên**
+  (`sessionLimit`, 0 = không giới hạn → tự `endSession` khi đạt), thuật toán mặc định,
   và **phím tắt bind được** (lưu theo `event.code`).
 - **`selectNextItem(items, configKey, algorithm, lastItemId)`**: 4 thuật toán chọn mục —
   `uniform` / `unseen` / `least` / `weak` (trọng số theo tỉ lệ sai + thời gian trả lời TB);

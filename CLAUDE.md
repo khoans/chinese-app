@@ -32,16 +32,18 @@ console.log('words',HSKData.words().length,'sentences',HSKData.sentences().lengt
 
 ## 0b. Cấp độ & nhãn hiển thị
 
-- Mỗi thư mục con trong `data/csv/` (trừ `_TEMPLATE`) là một **cấp**. Mã cấp = tên thư mục
-  (vd `HSK1`, `BT1`, `KX1`). `build.ps1` sắp theo band: **HSK** (số 1..6) → **BT** (1000+n) →
-  **KX** (2000+n) → khác (3000+n) → không số (cuối) — xem `Get-LevelSortKey`.
-- App hiển thị nhãn thân thiện qua `levelLabel(lv)` + bảng `LEVEL_LABELS`:
-  `HSK1→"HSK 1"`, `BT1→"Bộ thủ 1"`, `KX1→"214 bộ · 1–2 nét"`. Thêm cấp kiểu khác = thêm 1 dòng.
-- **Bộ thủ có hai phần độc lập** (CSV gom trong thư mục nhóm cho gọn):
-  - `BT1..BT10` (CSV: `data/csv/BoThu/`) — ~100 bộ **thông dụng**, chia theo **nghĩa**
-    (cột `chuDe` = tên nhóm), có ví dụ.
-  - `KX1..KX6` (CSV: `data/csv/KhangHy/`) — đủ **214 bộ Khang Hy**, chia theo **số nét**
-    (cột `chuDe` = "N nét"), dạng chữ Khang Hy chuẩn, **không ví dụ** (`ex` rỗng → app tự ẩn khung).
+- Mỗi thư mục chứa `words.csv` trong `data/csv/` (trừ `_TEMPLATE`) là một **cấp**. Mã cấp = tên
+  thư mục lá (`HSK1`, `BoThu`, `KhangHy`). `build.ps1` sắp: **HSK** (1..6) → `BoThu` (1000) →
+  `KhangHy` (1001) → khác có số (3000+n) → không số (cuối) — xem `Get-LevelSortKey`.
+- App hiển thị nhãn qua `levelLabel(lv)` + `LEVEL_LABELS`: `HSK1→"HSK 1"`,
+  `BoThu→"Bộ thủ thông dụng"`, `KhangHy→"Bộ thủ đầy đủ"`. Thêm cấp kiểu khác = thêm 1 dòng.
+- **Ô chọn chủ đề (`topicSel`) LỌC THEO CẤP** đang chọn (`topicsForLevel`/`renderTopicOptions`):
+  đổi cấp → reset `topic='ALL'` + dựng lại danh sách chủ đề của cấp đó. (Trainer có bộ chọn riêng.)
+- **Bộ thủ = 2 cấp lớn, chia nhỏ bằng CHỦ ĐỀ** (mỗi cấp là MỘT `words.csv`):
+  - `BoThu` (`data/csv/BoThu/words.csv`) — ~100 bộ **thông dụng**; `chuDe` = "Bộ thủ N · <nhóm>"
+    (10 chủ đề theo nghĩa); có ví dụ.
+  - `KhangHy` (`data/csv/KhangHy/words.csv`) — đủ **214 bộ Khang Hy**; `chuDe` = mốc số nét
+    ("1–2 nét"…"10–17 nét"); dạng chữ Khang Hy chuẩn, **không ví dụ** (`ex` rỗng → app tự ẩn khung).
   - Cả hai là từ vựng bình thường (có `lv`) nên mọi chế độ dùng được ngay.
 
 ## 1. Cơ chế nạp dữ liệu (chạy trên `file://`)

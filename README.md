@@ -106,51 +106,41 @@ Windows đôi khi chặn chạy script. Làm cách này thay thế:
 
 **Tên cấp hiển thị ra sao:**
 - Thư mục bắt đầu bằng `HSK` + số → hiện **“HSK 1”, “HSK 2”…** (và luôn xếp **trước**).
-- Thư mục bắt đầu bằng `BT` + số → hiện **“Bộ thủ 1”, “Bộ thủ 2”…** (xếp **sau** các cấp HSK).
-- Tên khác → hiện đúng như tên thư mục.
+- `BoThu` → **“Bộ thủ thông dụng”**; `KhangHy` → **“Bộ thủ đầy đủ”** (xếp sau HSK).
+- Tên khác → hiện đúng như tên thư mục. (Muốn nhãn riêng: thêm 1 dòng vào `LEVEL_LABELS` trong `index.html`.)
+
+> 💡 **Chọn cấp rồi ô “chủ đề” chỉ hiện chủ đề của cấp đó** — chọn “Bộ thủ thông dụng” thì dropdown
+> chủ đề liệt kê 10 nhóm; chọn “Bộ thủ đầy đủ” thì liệt kê các mốc số nét.
 
 ---
 
-## Phần 3b — Bộ thủ (chia theo chủ đề để dễ học)
+## Phần 3b — Bộ thủ (2 cấp lớn, bên trong chia theo chủ đề)
 
-Có sẵn **10 cấp Bộ thủ** (~100 bộ thủ Hán tự thông dụng), chia theo nhóm nghĩa cho dễ nhớ:
+Bộ thủ nằm gọn trong **2 cấp** (nút chọn cấp không bị rối):
 
-| Cấp | Nhóm | Ví dụ |
-|-----|------|-------|
-| **Bộ thủ 1** | Người & cơ thể | 人 口 女 心 手 目 … |
-| **Bộ thủ 2** | Thiên nhiên | 日 月 水 火 山 雨 … |
-| **Bộ thủ 3** | Động thực vật | 马 鱼 鸟 牛 竹 米 … |
-| **Bộ thủ 4** | Đồ vật & tính chất | 门 车 衣 食 金 大 小 … |
-| **Bộ thủ 5** | Cơ thể & sức khỏe | 骨 血 牙 齿 皮 身 肉 … |
-| **Bộ thủ 6** | Con người & hành động | 父 士 老 走 飞 行 … |
-| **Bộ thủ 7** | Động vật (mở rộng) | 犬 虎 龙 龟 鹿 角 贝 … |
-| **Bộ thủ 8** | Cây cỏ & khoáng vật | 麦 麻 瓜 谷 玉 王 … |
-| **Bộ thủ 9** | Đồ vật & công cụ (mở rộng) | 戈 斤 矛 舟 页 音 瓦 … |
-| **Bộ thủ 10** | Màu sắc & trừu tượng | 白 黑 青 赤 黄 色 文 高 … |
+**① “Bộ thủ thông dụng”** — ~100 bộ hay gặp, bên trong là **10 chủ đề** (chọn ở ô chủ đề):
 
-- **Học bộ thủ:** trên app chọn nút cấp **“Bộ thủ 1…10”**, hoặc vào **Luyện tập → Học từ** rồi tick
-  các cấp Bộ thủ ở màn chọn nguồn.
-- **Thêm bộ thủ:** mở `data/csv/BoThu/BT1/words.csv` (…BT2 … BT10) bằng Excel, thêm dòng, lưu, chạy build.
-- **Thêm một nhóm bộ thủ mới:** chép một thư mục `data/csv/BoThu/BT10/` → `data/csv/BoThu/BT11/`, sửa
-  nội dung, build → nút “Bộ thủ 11” tự xuất hiện.
+| Chủ đề | Ví dụ |
+|--------|-------|
+| Bộ thủ 1 · Người & cơ thể | 人 口 女 心 手 目 … |
+| Bộ thủ 2 · Thiên nhiên | 日 月 水 火 山 雨 … |
+| Bộ thủ 3 · Động thực vật | 马 鱼 鸟 牛 竹 米 … |
+| Bộ thủ 4 · Đồ vật & tính chất | 门 车 衣 食 金 大 小 … |
+| Bộ thủ 5 · Cơ thể & sức khỏe | 骨 血 牙 齿 皮 身 肉 … |
+| Bộ thủ 6 · Con người & hành động | 父 士 老 走 飞 行 … |
+| Bộ thủ 7 · Động vật (mở rộng) | 犬 虎 龙 龟 鹿 角 贝 … |
+| Bộ thủ 8 · Cây cỏ & khoáng vật | 麦 麻 瓜 谷 玉 王 … |
+| Bộ thủ 9 · Đồ vật & công cụ (mở rộng) | 戈 斤 矛 舟 页 音 瓦 … |
+| Bộ thủ 10 · Màu sắc & trừu tượng | 白 黑 青 赤 黄 色 文 高 … |
 
-### Bộ đầy đủ 214 bộ Khang Hy (theo số nét) — độc lập
+**② “Bộ thủ đầy đủ”** — đủ **214 bộ Khang Hy**, bên trong chia theo **số nét** (6 chủ đề: `1–2 nét`,
+`3 nét`, `4 nét`, `5–6 nét`, `7–9 nét`, `10–17 nét`). Dùng dạng chữ Khang Hy chuẩn (một số phồn thể
+như 見 車 馬 龍) và **không kèm câu ví dụ**.
 
-Ngoài 10 cấp “Bộ thủ” theo nghĩa ở trên, còn có bộ **đầy đủ 214 bộ thủ Khang Hy** xếp **theo số
-nét**, để tra cứu/học có hệ thống. **Hai phần độc lập** — bạn chọn học phần nào cũng được:
-
-| Cấp (trên app) | Gồm |
-|-----|-----|
-| **214 bộ · 1–2 nét** | 一 丨 丶 乙 二 人 儿 八 刀 力 十 又 … |
-| **214 bộ · 3 nét** | 口 土 大 女 子 山 巾 弓 … |
-| **214 bộ · 4 nét** | 心 手 日 月 木 水 火 牛 犬 … |
-| **214 bộ · 5–6 nét** | 玉 田 目 石 竹 米 耳 舟 虫 … |
-| **214 bộ · 7–9 nét** | 見 言 走 足 車 金 門 雨 頁 風 食 … |
-| **214 bộ · 10+ nét** | 馬 骨 高 魚 鳥 鹿 黑 鼻 齒 龍 龜 龠 |
-
-- Dùng **dạng chữ Khang Hy chuẩn** (một số bộ ở dạng phồn thể như 見 車 馬 龍) và **không kèm câu
-  ví dụ** (đây là bảng tra bộ thủ). Cột `chuDe` là **số nét** (vd “5 nét”) để lọc.
-- Sửa/thêm: `data/csv/KhangHy/KX1/words.csv` … `KX6/words.csv`.
+- **Học bộ thủ:** chọn nút cấp **“Bộ thủ thông dụng”** hoặc **“Bộ thủ đầy đủ”**, rồi chọn chủ đề; hoặc
+  vào **Luyện tập → Học từ** tick cấp + chủ đề.
+- **Sửa/thêm:** mỗi cấp là **một file duy nhất** — `data/csv/BoThu/words.csv` (cột `chuDe` = tên nhóm)
+  và `data/csv/KhangHy/words.csv` (cột `chuDe` = số nét). Thêm dòng, lưu, chạy build.
 
 ---
 
@@ -218,8 +208,8 @@ data/
   csv/                          # ⇦ NƠI BẠN SỬA NỘI DUNG
     HSK1/  words.csv  conversations.csv  sentences.csv
     HSK2/  words.csv  conversations.csv  sentences.csv
-    BoThu/   BT1/ … BT10/       # 10 cấp "Bộ thủ" theo nghĩa (100 bộ thông dụng)
-    KhangHy/ KX1/ … KX6/        # 214 bộ Khang Hy theo số nét (độc lập)
+    BoThu/   words.csv          # cấp "Bộ thủ thông dụng" (100 bộ; chuDe = tên nhóm)
+    KhangHy/ words.csv          # cấp "Bộ thủ đầy đủ" (214 bộ Khang Hy; chuDe = số nét)
     _TEMPLATE/                  # mẫu để chép khi thêm cấp mới
     README.md                   # bản hướng dẫn biên soạn ngắn gọn
   registry.js, manifest.js      # TỰ SINH — đừng sửa tay

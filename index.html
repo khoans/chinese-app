@@ -463,22 +463,18 @@ document.getElementById('totalN').textContent = WORDS.length;
 document.getElementById('topicN').textContent = TOPICS.length;
 /* Nhãn hiển thị cho một cấp. Thêm cấp kiểu khác chỉ cần bổ sung một dòng ở đây
    (không bắt buộc — mặc định vẫn hiện đúng mã cấp).
-   - HSK1 -> "HSK 1"; BT1 -> "Bộ thủ 1" (100 bộ thông dụng theo nghĩa);
-   - KX1..KX6 -> "214 bộ · N nét" (đủ 214 bộ Khang Hy theo số nét). */
-const LEVEL_LABELS={
-  KX1:'214 bộ · 1–2 nét', KX2:'214 bộ · 3 nét', KX3:'214 bộ · 4 nét',
-  KX4:'214 bộ · 5–6 nét', KX5:'214 bộ · 7–9 nét', KX6:'214 bộ · 10+ nét',
-};
+   - HSK1 -> "HSK 1"; BoThu -> "Bộ thủ thông dụng"; KhangHy -> "Bộ thủ đầy đủ".
+   Bên trong mỗi cấp bộ thủ được chia bằng CHỦ ĐỀ (cột chuDe của CSV). */
+const LEVEL_LABELS={ BoThu:'Bộ thủ thông dụng', KhangHy:'Bộ thủ đầy đủ' };
 function levelLabel(lv){
   if(LEVEL_LABELS[lv]) return LEVEL_LABELS[lv];
   if(/^HSK\d/.test(lv)) return lv.replace(/^HSK/,'HSK ');
-  if(/^BT\d/.test(lv))  return 'Bộ thủ '+lv.slice(2);
   return lv;
 }
 (function fillLevelRange(){
   const levels=(window.HSKData&&HSKData.levels().length)?HSKData.levels():(window.LEVELS||[]);
   const hskNums=levels.filter(l=>/^HSK\d/.test(l)).map(l=>l.match(/\d+/)[0]);
-  const hasRadicals=levels.some(l=>/^BT\d/.test(l));
+  const hasRadicals=levels.some(l=>l==='BoThu'||l==='KhangHy');
   let text = hskNums.length?('HSK '+(hskNums.length>1?hskNums[0]+'–'+hskNums[hskNums.length-1]:hskNums[0])):'';
   if(hasRadicals) text += (text?' · ':'')+'Bộ thủ';
   document.getElementById('lvRange').textContent = text || 'HSK';
@@ -498,7 +494,17 @@ function updateAutoAudioBtn(){const b=document.getElementById('autoAudioBtn');if
 /* ---------- filters / state ---------- */
 let level='ALL', topic='ALL', mode='card';
 const topicSel=document.getElementById('topicSel');
-topicSel.innerHTML='<option value="ALL">Tất cả chủ đề</option>'+TOPICS.map(t=>`<option value="${t}">${t}</option>`).join('');
+/* Chủ đề LỌC THEO CẤP đang chọn: mỗi cấp bộ thủ có bộ chủ đề riêng, đỡ rối dropdown. */
+function topicsForLevel(lv){
+  const out=[]; WORDS.forEach(w=>{ if((lv==='ALL'||w.lv===lv)&&w.topic&&out.indexOf(w.topic)===-1)out.push(w.topic); });
+  return out;
+}
+function renderTopicOptions(){
+  const list=topicsForLevel(level);
+  if(topic!=='ALL'&&list.indexOf(topic)===-1)topic='ALL';   // chủ đề cũ không có trong cấp mới -> về Tất cả
+  topicSel.innerHTML='<option value="ALL">Tất cả chủ đề</option>'+list.map(t=>`<option value="${t}"${t===topic?' selected':''}>${t}</option>`).join('');
+}
+renderTopicOptions();
 /* Nút chọn cấp sinh ĐỘNG từ manifest (HSKData.levels()/LEVELS) — thêm cấp mới KHÔNG phải sửa HTML. */
 (function renderLevelButtons(){
   const seg=document.getElementById('lvSeg');
@@ -513,7 +519,7 @@ function sample(a,n,ex){const p=a.filter(x=>x!==ex).slice();const o=[];while(o.l
 function shuffleArr(a){for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 function chars(w){return [...w].filter(c=>/[\u4e00-\u9fff]/.test(c));}
 
-document.getElementById('lvSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...e.currentTarget.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');level=b.dataset.lv;refresh();});
+document.getElementById('lvSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...e.currentTarget.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');level=b.dataset.lv;topic='ALL';renderTopicOptions();refresh();});
 topicSel.addEventListener('change',e=>{topic=e.target.value;refresh();});
 
 /* ---------- grouped navigation ---------- */

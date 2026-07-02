@@ -45,8 +45,8 @@ function Write-Utf8NoBom {
 function Get-LevelSortKey {
     param([string]$LevelName)
     if ($LevelName -match '^HSK(\d+)') { return [int]$Matches[1] }          # HSK1..HSK6 -> 1..6 (đứng đầu)
-    if ($LevelName -match '^BT(\d+)')  { return 1000 + [int]$Matches[1] }   # BT1..: 100 bộ thủ theo nghĩa
-    if ($LevelName -match '^KX(\d+)')  { return 2000 + [int]$Matches[1] }   # KX1..: 214 bộ Khang Hy theo số nét
+    if ($LevelName -eq 'BoThu')        { return 1000 }                      # Bộ thủ thông dụng (100 bộ)
+    if ($LevelName -eq 'KhangHy')      { return 1001 }                      # Bộ thủ đầy đủ (214 bộ Khang Hy)
     if ($LevelName -match '(\d+)')     { return 3000 + [int]$Matches[1] }   # cấp khác có số
     return 9999
 }

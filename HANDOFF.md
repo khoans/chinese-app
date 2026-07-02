@@ -12,8 +12,9 @@
   không backend, không bước build lúc chạy. **Chạy bằng cách double-click** (`file://`).
 - Dữ liệu **KHÔNG nhúng trong HTML**. Nguồn gốc là **CSV** trong `data/csv/`; `tools/build.ps1`
   sinh ra các file `.js`; app nạp qua `data/registry.js` + `data/manifest.js` + `document.write`.
-- Hiện có **18 cấp**: HSK1, HSK2 (từ vựng), BT1–BT10 (100 bộ thủ theo nghĩa), KX1–KX6 (214 bộ
-  Khang Hy theo số nét). Tổng **690 từ**, 5 hội thoại, 2 câu mẫu, 40 chủ đề.
+- Hiện có **4 cấp**: `HSK1`, `HSK2` (từ vựng), `BoThu` ("Bộ thủ thông dụng", 100 bộ), `KhangHy`
+  ("Bộ thủ đầy đủ", 214 bộ Khang Hy). Tổng **690 từ**, 5 hội thoại, 2 câu mẫu, 29 chủ đề. Bên
+  trong 2 cấp bộ thủ được chia nhỏ bằng **chủ đề** (`chuDe`).
 - Ràng buộc TUYỆT ĐỐI: **không phá `file://`** (không `fetch`, không ES module để nạp dữ liệu).
 
 ---
@@ -40,7 +41,7 @@
 ## 2. Trạng thái hiện tại (snapshot)
 
 - File app: **`index.html`** (từng tên `hoc-tieng-trung-hsk1-2_1.html`, đã đổi).
-- 18 cấp: `HSK1, HSK2, BT1..BT10, KX1..KX6`. 690 từ / 5 hội thoại / 2 câu mẫu / 40 chủ đề.
+- 4 cấp: `HSK1, HSK2, BoThu, KhangHy`. 690 từ / 5 hội thoại / 2 câu mẫu / 29 chủ đề.
 - Git: repo cục bộ, nhánh `main`, **chưa có remote** (chưa push). Lịch sử commit gần nhất:
   ```
   cd76b3f Gom cấp bộ thủ vào thư mục nhóm (BoThu / KhangHy)
@@ -66,21 +67,21 @@ data/
   registry.js                   # registerLevel() + HSKData (NẠP ĐẦU TIÊN). Viết tay, ổn định.
   manifest.js                   # TỰ SINH: var LEVELS + var LEVEL_SRC
   HSK1/hsk1.js  HSK2/hsk2.js     # TỰ SINH (cấp trực tiếp)
-  BoThu/bt1.js … bt10.js        # TỰ SINH (nhóm 100 bộ thủ theo nghĩa)
-  KhangHy/kx1.js … kx6.js       # TỰ SINH (nhóm 214 bộ Khang Hy theo số nét)
+  BoThu/bothu.js                # TỰ SINH — cấp "Bộ thủ thông dụng" (100 bộ)
+  KhangHy/khanghy.js            # TỰ SINH — cấp "Bộ thủ đầy đủ" (214 bộ Khang Hy)
   csv/                          # ⇦ NGUỒN DỮ LIỆU GỐC (chỉ sửa ở đây)
     HSK1/  words.csv  conversations.csv  sentences.csv
     HSK2/  words.csv  conversations.csv  sentences.csv
-    BoThu/   BT1/ … BT10/       (mỗi cấp: words.csv)
-    KhangHy/ KX1/ … KX6/        (mỗi cấp: words.csv)
+    BoThu/   words.csv          # cấp "Bộ thủ thông dụng" (chuDe = "Bộ thủ N · nhóm")
+    KhangHy/ words.csv          # cấp "Bộ thủ đầy đủ" (chuDe = mốc số nét)
     _TEMPLATE/ words.csv conversations.csv sentences.csv   # mẫu; BỊ BỎ QUA khi build
     README.md
 tools/
   build.ps1                     # CSV -> *.js + manifest.js  (UTF-8 CÓ BOM! xem §5)
 ```
 
-> **CSV → JS gom theo nhóm:** `data/csv/BoThu/BT1/` → `data/BoThu/bt1.js`;
-> `data/csv/KhangHy/KX1/` → `data/KhangHy/kx1.js`; cấp trực tiếp `data/csv/HSK1/` → `data/HSK1/hsk1.js`.
+> **CSV → JS:** cấp trực tiếp `data/csv/HSK1/` → `data/HSK1/hsk1.js`; cấp trong thư mục nhóm
+> `data/csv/<Nhóm>/<CODE>/` → `data/<Nhóm>/<code>.js`. (Cơ chế gom-nhóm vẫn còn cho ai muốn dùng.)
 
 ---
 
@@ -163,21 +164,20 @@ chế độ Dịch câu.
 
 ## 7. Cấp độ, nhãn, và bộ thủ
 
-- **Mã cấp** = tên thư mục lá: `HSK1`, `BT1`, `KX1`… Trường `w.lv` dùng mã này.
-- **Nhãn hiển thị** qua `levelLabel(lv)` + bảng `LEVEL_LABELS` (trong `index.html`):
-  - `HSK1` → "HSK 1"; `BT1` → "Bộ thủ 1"; `KX1..KX6` → "214 bộ · 1–2 nét / 3 nét / 4 nét / 5–6 nét
-    / 7–9 nét / 10+ nét". Thêm kiểu cấp mới với nhãn riêng = thêm 1 dòng ở đây (không bắt buộc).
-- **Hai phần bộ thủ độc lập** (người dùng chọn học phần nào cũng được):
-  - `BT1..BT10` — ~**100 bộ thủ thông dụng**, chia theo **nghĩa** (10 nhóm: Người & cơ thể, Thiên
-    nhiên, Động thực vật, Đồ vật & tính chất, Cơ thể & sức khỏe, Con người & hành động, Động vật
-    mở rộng, Cây cỏ & khoáng vật, Đồ vật & công cụ, Màu sắc & trừu tượng). Cột `chuDe` = tên nhóm.
-    **Có** câu ví dụ. CSV: `data/csv/BoThu/`.
-  - `KX1..KX6` — đủ **214 bộ Khang Hy**, chia theo **số nét**. Cột `chuDe` = "N nét". Dùng **dạng
-    chữ Khang Hy chuẩn** (một số phồn thể: 見 車 馬 龍 齒…). **KHÔNG** câu ví dụ (`ex` rỗng → app tự
-    ẩn khung ví dụ). CSV: `data/csv/KhangHy/`.
-  - Bộ thủ là **từ vựng bình thường** (có `lv`) → mọi chế độ (thẻ, trắc nghiệm, Luyện tập…) dùng ngay.
-- Tiêu đề header (`#lvRange`) hiện "HSK 1–2 · Bộ thủ" (chỉ tổng hợp cấp HSK + có gắn "Bộ thủ" nếu
-  tồn tại cấp BT). Thanh chọn cấp (`.seg`) **tự xuống dòng** khi nhiều nút (hiện có 19 nút).
+- **Mã cấp** = tên thư mục lá: `HSK1`, `HSK2`, `BoThu`, `KhangHy`. Trường `w.lv` dùng mã này.
+- **Nhãn hiển thị** qua `levelLabel(lv)` + `LEVEL_LABELS` (trong `index.html`): `HSK1`→"HSK 1";
+  `BoThu`→"Bộ thủ thông dụng"; `KhangHy`→"Bộ thủ đầy đủ". Thêm nhãn kiểu cấp mới = thêm 1 dòng.
+- **Ô chọn chủ đề LỌC THEO CẤP** (`topicsForLevel`/`renderTopicOptions`): chọn cấp → dropdown chỉ
+  hiện chủ đề của cấp đó, và `topic` reset về `ALL`. Nhờ vậy thanh cấp gọn (5 nút) mà vẫn chia nhỏ được.
+- **Hai phần bộ thủ** (mỗi phần là MỘT cấp, MỘT `words.csv`; chia nhỏ bằng **chủ đề**):
+  - `BoThu` (`data/csv/BoThu/words.csv`) — ~**100 bộ thông dụng**; `chuDe` = "Bộ thủ N · <nhóm>"
+    (10 nhóm nghĩa: Người & cơ thể … Màu sắc & trừu tượng); **có** câu ví dụ.
+  - `KhangHy` (`data/csv/KhangHy/words.csv`) — đủ **214 bộ Khang Hy**; `chuDe` = mốc số nét
+    ("1–2 nét"…"10–17 nét"); dạng chữ Khang Hy chuẩn (một số phồn thể 見 車 馬 龍 齒…); **KHÔNG**
+    câu ví dụ (`ex` rỗng → app tự ẩn khung).
+  - Bộ thủ là **từ vựng bình thường** (có `lv`) → mọi chế độ dùng ngay.
+- Tiêu đề header (`#lvRange`) hiện "HSK 1–2 · Bộ thủ". Thanh chọn cấp (`.seg`) gọn: **5 nút**
+  (Tất cả · HSK 1 · HSK 2 · Bộ thủ thông dụng · Bộ thủ đầy đủ), có `flex-wrap` phòng khi thêm cấp.
 
 ---
 
@@ -315,9 +315,8 @@ Luôn kiểm **trung thực dữ liệu HSK**: so `HSKData.words()` (lọc `/^HS
 - **Thêm/sửa từ:** sửa `data/csv/<cấp>/words.csv` (Excel, lưu CSV UTF-8) → `pwsh ./tools/build.ps1`.
 - **Thêm câu Dịch câu:** thêm dòng vào `data/csv/<cấp>/sentences.csv`.
 - **Thêm cấp HSK mới:** chép `data/csv/_TEMPLATE/` → `data/csv/HSK3/`, điền, build → nút tự hiện.
-- **Thêm nhóm bộ thủ nghĩa:** chép `data/csv/BoThu/BT10/` → `data/csv/BoThu/BT11/`; nếu muốn nhãn
-  đẹp cho kiểu cấp hoàn toàn mới thì thêm dòng vào `LEVEL_LABELS`/`levelLabel` trong `index.html`.
-- **Sửa 214 bộ Khang Hy:** `data/csv/KhangHy/KX*/words.csv`.
+- **Thêm/sửa bộ thủ thông dụng:** `data/csv/BoThu/words.csv` (cột `chuDe` = "Bộ thủ N · <nhóm>"
+  để tạo/đặt chủ đề mới). **Sửa 214 bộ:** `data/csv/KhangHy/words.csv` (cột `chuDe` = mốc số nét).
 - Sau MỌI thay đổi CSV: **chạy build**, rồi kiểm §11.
 
 ---
@@ -325,8 +324,7 @@ Luôn kiểm **trung thực dữ liệu HSK**: so `HSKData.words()` (lọc `/^HS
 ## 13. Việc còn có thể làm (gợi ý, chưa làm)
 
 - **214 bộ hiện soạn một lượt** — nên rà lại tên Hán-Việt/pinyin các bộ hiếm (龠 鬯 黹 黽…).
-- **Thanh chọn cấp có 19 nút** — nếu thấy rối, có thể làm **bộ chọn 2 tầng** (chọn HSK / Bộ thủ
-  nghĩa / 214 bộ trước, rồi mới hiện cấp con).
+- Thanh cấp đã gọn (5 nút) sau khi gộp BoThu/KhangHy; chủ đề lọc theo cấp.
 - Chưa có remote git / chưa deploy. Chưa có service worker (build có sẵn nhánh tăng cache nếu thêm `sw.js`).
 - `zh_history_v1` là legacy — có thể dọn khi tiện.
 

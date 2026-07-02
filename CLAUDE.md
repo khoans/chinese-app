@@ -125,7 +125,7 @@ Các module (đều là `const` trong phạm vi `<script>` chính):
   chú**, **đồng hồ**, và **tổng kết + biểu đồ** cuối phiên. Khi hiện đáp án có 3 nút tự chấm
   **Chấm sai / Chấm đúng / Đã thuộc**; chấm xong **tự qua thẻ mới**. **Đã thuộc** ghi nhận 1 lượt
   đúng rồi ẩn mục khỏi phần luyện (`Mastered`). Có **“Thẻ trước”** để xem lại đáp án đã làm và
-  **chấm lại** (sửa đúng cả `Progress`, streak, và thống kê phiên). Có **danh sách đã/chưa thuộc**
+  **chấm lại** (sửa đúng cả `Progress`, streak, và thống kê phiên). Có **shuttle 2 bảng đã/chưa thuộc**
   để quản lý (tự cập nhật khi đánh dấu đã thuộc). Có **Tạm dừng** (không tính thời gian tạm dừng
   vào thời gian trả lời) và **Kết thúc** (nút có màu phân biệt). Mỗi nút có phím tắt hiện **ngay
   trên nút** (theo phím đang gán). Không còn nút “Bỏ qua”.

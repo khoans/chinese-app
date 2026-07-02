@@ -226,7 +226,23 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);line-height:1.5;marg
 .prevbody .preva{color:var(--ink2)}
 .prevregrade{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
 .btn.mini{flex:none;padding:6px 11px;font-size:12.5px;border-radius:9px}
-.masterbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow:auto}
+.masterbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+/* Shuttle 2 bảng đã/chưa thuộc */
+.shuttle{display:flex;gap:8px;align-items:stretch}
+.shuttle-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.shuttle-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);display:flex;align-items:center;gap:6px}
+.shuttle-col input[type=search]{width:100%}
+.shuttle-mid{flex:none;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.shuttle-mid button{width:38px;height:34px;border:1px solid var(--line);background:var(--card);border-radius:9px;font-size:17px;font-weight:700;line-height:1;color:var(--ink2);cursor:pointer;transition:.12s}
+.shuttle-mid button:hover{background:var(--paper2)}
+.shuttle-mid button:active{transform:translateY(1px)}
+.shuttle .tablewrap{max-height:230px;flex:1}
+.mastertable td{cursor:pointer;user-select:none;padding:6px 8px}
+.mastertable td .zh{font-family:'Noto Serif SC',serif;font-weight:600;color:var(--ink);font-size:15px}
+.mastertable td .mlm{color:var(--ink2);font-size:11.5px}
+.mastertable tr.sel td{background:var(--gold)}
+.mastertable tr.sel td .zh,.mastertable tr.sel td .mlm{color:#fff}
+@media(max-width:520px){ .shuttle{flex-direction:column} .shuttle-mid{flex-direction:row;justify-content:center} .shuttle-mid button{width:46px} }
 
 .traincard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 18px;text-align:center;box-shadow:0 10px 30px -20px rgba(34,29,25,.5);min-height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative}
 .traincard.paused>*{visibility:hidden}
@@ -1189,7 +1205,8 @@ const Trainer=(function(){
         + (rows.length===0?`<tr><td colspan="4" style="text-align:center;color:var(--ink3)">Không có mục nào khớp.</td></tr>`:'');
       table.querySelectorAll('th[data-key]').forEach(th=>th.onclick=()=>{ const kk=th.dataset.key; if(previewSort.key===kk)previewSort.dir*=-1; else{previewSort.key=kk;previewSort.dir=1;} renderPreview(); });
     };
-    const updatePreview=()=>{
+    // Cập nhật số liệu + bảng xem trước (KHÔNG dựng lại bảng đã/chưa thuộc — tránh vòng lặp)
+    const refreshOutputs=()=>{
       readCfg();
       const source=buildSourceItems(kind,cfg);
       const masteredCount=source.filter(it=>Mastered.has(it.id)).length;
@@ -1197,8 +1214,11 @@ const Trainer=(function(){
       q('[data-role=count]').textContent=lastPool.length;
       q('[data-role=masteredNote]').textContent=masteredCount?`· ${masteredCount} đã thuộc (ẩn)`:'';
       renderPreview();
+    };
+    const updatePreview=()=>{
+      refreshOutputs();
       const mBox=q('[data-role=setupMasterBox]');
-      if(mBox&&!mBox.classList.contains('hidden'))renderMasterList(mBox,kind,cfg,()=>updatePreview());
+      if(mBox&&!mBox.classList.contains('hidden'))renderMasterList(mBox,kind,cfg,refreshOutputs);
     };
     // Lọc chủ đề đang gõ (áp cho cả nhóm; ẩn tiêu đề nhóm nếu không còn chủ đề nào hiện)
     const applyTopicFilter=()=>{
@@ -1254,7 +1274,7 @@ const Trainer=(function(){
     renderTopicChips();
     q('[data-role=togglePreview]').onclick=()=>{ q('[data-role=preview]').classList.toggle('hidden'); updatePreview(); };
     q('[data-role=previewSearch]').oninput=e=>{ previewTerm=e.target.value; renderPreview(); };
-    q('[data-role=setupMasterToggle]').onclick=()=>{ const mBox=q('[data-role=setupMasterBox]'); mBox.classList.toggle('hidden'); if(!mBox.classList.contains('hidden'))renderMasterList(mBox,kind,cfg,()=>updatePreview()); };
+    q('[data-role=setupMasterToggle]').onclick=()=>{ const mBox=q('[data-role=setupMasterBox]'); mBox.classList.toggle('hidden'); if(!mBox.classList.contains('hidden'))renderMasterList(mBox,kind,cfg,refreshOutputs); };
     q('[data-role=start]').onclick=()=>{
       readCfg();
       if(!cfg.levels.length){alert('Hãy chọn ít nhất một cấp độ.');return;}
@@ -1516,35 +1536,80 @@ const Trainer=(function(){
   function refreshMasterList(){
     if(!active)return;
     const box=active.panel.querySelector('[data-role=masterListBox]');
-    if(box && !box.classList.contains('hidden')){
-      const refresh=()=>{ renderMasterList(box,active.kind,active.cfg,refresh); updateStatline(); };
-      refresh();
-    }
+    if(box && !box.classList.contains('hidden')) renderMasterList(box,active.kind,active.cfg,updateStatline);
   }
-
-  /* ---------- Danh sách "đã thuộc / chưa thuộc" (quản lý ngay khi luyện) ---------- */
   function toggleMasterList(){
     const box=active.panel.querySelector('[data-role=masterListBox]');
     box.classList.toggle('hidden');
-    if(!box.classList.contains('hidden')){
-      const refresh=()=>{ renderMasterList(box,active.kind,active.cfg,refresh); updateStatline(); };
-      refresh();
-    }
+    if(!box.classList.contains('hidden')) renderMasterList(box,active.kind,active.cfg,updateStatline);
   }
+
+  /* ---------- Quản lý "đã / chưa thuộc" kiểu 2 bảng chuyển qua lại (shuttle) ---------- */
   function renderMasterList(box,kind,cfg,onChange){
     const source=buildSourceItems(kind,cfg);
-    const mastered=source.filter(it=>Mastered.has(it.id));
-    const notMastered=source.filter(it=>!Mastered.has(it.id));
-    const label=it=> it.kind==='word'?it.w:(it.zh.length>12?it.zh.slice(0,12)+'…':it.zh);
-    const chip=(it,cls)=>`<button class="chip mini ${cls}" data-id="${esc(it.id)}" type="button"><span class="zh">${esc(label(it))}</span></button>`;
-    const cap=200;
+    const rowLabel=it=> kind==='word'?{zh:it.w,m:it.m||'',py:it.p||''}:{zh:it.zh,m:it.vi||'',py:it.py||''};
+    const selL=new Set(), selR=new Set();   // id đang chọn ở bảng Chưa thuộc / Đã thuộc
+    let anchorL=null, anchorR=null, leftItems=[], rightItems=[];
+    function matchItem(it,term){
+      const raw=(term||'').trim(); if(!raw)return true;
+      const lb=rowLabel(it);
+      if(lb.zh.indexOf(raw)>=0)return true;
+      const nt=normalizeMeaning(raw); if(nt && normalizeMeaning(lb.m).indexOf(nt)>=0)return true;
+      const pt=normalizePinyin(raw); if(pt && normalizePinyin(lb.py).indexOf(pt)>=0)return true;
+      return false;
+    }
+    function doMaster(id){ Mastered.add(id); removeFromPool(id); }
+    function doUnmaster(id){ Mastered.remove(id); if(active&&active.pool&&(!active.current||active.current.id!==id)&&!active.pool.some(x=>x.id===id)){ const it=source.find(s=>s.id===id); if(it)active.pool.push(it); } }
     box.innerHTML=`
-      <div class="fld"><h4>Đã thuộc · ${mastered.length} (chạm để bỏ)</h4>
-        <div class="chips" data-role="mList">${mastered.slice(0,cap).map(it=>chip(it,'done')).join('')||'<span class="tqsub">— chưa có —</span>'}${mastered.length>cap?`<span class="pvchip">… +${mastered.length-cap}</span>`:''}</div></div>
-      <div class="fld"><h4>Chưa thuộc · ${notMastered.length} (chạm để đánh dấu đã thuộc)</h4>
-        <div class="chips" data-role="nList">${notMastered.slice(0,cap).map(it=>chip(it,'')).join('')||'<span class="tqsub">— trống —</span>'}${notMastered.length>cap?`<span class="pvchip">… +${notMastered.length-cap}</span>`:''}</div></div>`;
-    box.querySelectorAll('[data-role=mList] .chip').forEach(c=>c.onclick=()=>{ const id=c.dataset.id; Mastered.remove(id); if(active&&active.pool&&!active.pool.some(x=>x.id===id)){ const it=source.find(s=>s.id===id); if(it&&(!active.current||active.current.id!==id))active.pool.push(it); } onChange&&onChange(); });
-    box.querySelectorAll('[data-role=nList] .chip').forEach(c=>c.onclick=()=>{ const id=c.dataset.id; Mastered.add(id); removeFromPool(id); onChange&&onChange(); });
+      <div class="shuttle">
+        <div class="shuttle-col">
+          <div class="shuttle-head">Chưa thuộc <span data-role="cntL" class="topicgroup-count"></span></div>
+          <input type="search" data-role="searchL" placeholder="Tìm…">
+          <div class="tablewrap"><table class="statstable previewtable mastertable"><tbody data-role="bodyL"></tbody></table></div>
+        </div>
+        <div class="shuttle-mid">
+          <button data-role="allRight" type="button" title="Đưa tất cả (đang hiện) sang Đã thuộc">»</button>
+          <button data-role="moveRight" type="button" title="Đưa mục đã chọn sang Đã thuộc">›</button>
+          <button data-role="moveLeft" type="button" title="Đưa mục đã chọn về Chưa thuộc">‹</button>
+          <button data-role="allLeft" type="button" title="Đưa tất cả (đang hiện) về Chưa thuộc">«</button>
+        </div>
+        <div class="shuttle-col">
+          <div class="shuttle-head">Đã thuộc <span data-role="cntR" class="topicgroup-count"></span></div>
+          <input type="search" data-role="searchR" placeholder="Tìm…">
+          <div class="tablewrap"><table class="statstable previewtable mastertable"><tbody data-role="bodyR"></tbody></table></div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:6px">Chạm để chọn/bỏ chọn · giữ <b>Ctrl</b> chọn nhiều · giữ <b>Shift</b> chọn liên tiếp · rồi bấm ‹ › (hoặc » « để chuyển tất cả).</div>`;
+    const q2=s=>box.querySelector(s);
+    const bodyHtml=(items,sel)=>items.map(it=>{const lb=rowLabel(it);return `<tr data-id="${esc(it.id)}"${sel.has(it.id)?' class="sel"':''}><td><span class="zh">${esc(lb.zh)}</span>${lb.m?` <span class="mlm">${esc(lb.m)}</span>`:''}</td></tr>`;}).join('')||'<tr><td class="tqsub" style="padding:8px">— trống —</td></tr>';
+    function updCount(){ q2('[data-role=cntL]').textContent=leftItems.length+(selL.size?(' · '+selL.size+' chọn'):''); q2('[data-role=cntR]').textContent=rightItems.length+(selR.size?(' · '+selR.size+' chọn'):''); }
+    function renderTables(){
+      leftItems=source.filter(it=>!Mastered.has(it.id)).filter(it=>matchItem(it,q2('[data-role=searchL]').value));
+      rightItems=source.filter(it=>Mastered.has(it.id)).filter(it=>matchItem(it,q2('[data-role=searchR]').value));
+      q2('[data-role=bodyL]').innerHTML=bodyHtml(leftItems,selL);
+      q2('[data-role=bodyR]').innerHTML=bodyHtml(rightItems,selR);
+      updCount();
+    }
+    function applySel(side){ const sel=side==='L'?selL:selR; q2(side==='L'?'[data-role=bodyL]':'[data-role=bodyR]').querySelectorAll('tr[data-id]').forEach(tr=>tr.classList.toggle('sel',sel.has(tr.dataset.id))); updCount(); }
+    function rowClick(e,side){
+      const tr=e.target.closest('tr[data-id]'); if(!tr)return;
+      const items=side==='L'?leftItems:rightItems, sel=side==='L'?selL:selR, id=tr.dataset.id, idx=items.findIndex(it=>it.id===id);
+      const anchorId=side==='L'?anchorL:anchorR, aidx=anchorId?items.findIndex(it=>it.id===anchorId):-1;
+      if(e.shiftKey && aidx>=0){ const a=Math.min(aidx,idx), b=Math.max(aidx,idx); for(let i=a;i<=b;i++)sel.add(items[i].id); }   // Shift: chọn liên tiếp (chỉ thêm)
+      else { if(sel.has(id))sel.delete(id); else sel.add(id); if(side==='L')anchorL=id; else anchorR=id; }               // click/Ctrl: bật/tắt từng dòng
+      applySel(side);
+    }
+    function moveSelected(side){ const sel=side==='L'?selL:selR; if(!sel.size)return; [...sel].forEach(id=> side==='L'?doMaster(id):doUnmaster(id)); sel.clear(); if(side==='L')anchorL=null; else anchorR=null; renderTables(); onChange&&onChange(); }
+    function moveAll(side){ const items=(side==='L'?leftItems:rightItems).slice(); if(!items.length)return; items.forEach(it=> side==='L'?doMaster(it.id):doUnmaster(it.id)); selL.clear();selR.clear();anchorL=anchorR=null; renderTables(); onChange&&onChange(); }
+    q2('[data-role=bodyL]').addEventListener('click',e=>rowClick(e,'L'));
+    q2('[data-role=bodyR]').addEventListener('click',e=>rowClick(e,'R'));
+    q2('[data-role=moveRight]').onclick=()=>moveSelected('L');
+    q2('[data-role=moveLeft]').onclick=()=>moveSelected('R');
+    q2('[data-role=allRight]').onclick=()=>moveAll('L');
+    q2('[data-role=allLeft]').onclick=()=>moveAll('R');
+    q2('[data-role=searchL]').oninput=renderTables;
+    q2('[data-role=searchR]').oninput=renderTables;
+    renderTables();
   }
 
   function startTimer(){

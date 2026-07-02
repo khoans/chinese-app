@@ -198,7 +198,9 @@ chế độ Dịch câu.
   - `record(cfg,id,outcome,ms)`, `adjust(cfg,id,old,new)` (dời 1 lượt khi chấm lại),
     `setStreakCurrent`, `streakOf`, `statsForConfig`, `setNote/noteOf`, `resetAll/clearConfig`.
 - **`Mastered`** (`zh_mastered_v1`) — tập mục "đã thuộc" theo `itemId` **toàn cục**. `buildPool`
-  loại các mục đã thuộc → không xuất hiện khi luyện. Quản lý được ở danh sách đã/chưa thuộc.
+  loại các mục đã thuộc → không xuất hiện khi luyện. Quản lý bằng **shuttle 2 bảng** (`renderMasterList`):
+  bảng Chưa thuộc / Đã thuộc, nút `› ‹` (chuyển mục đã chọn) và `» «` (chuyển tất cả đang hiện),
+  có tìm kiếm mỗi bảng, chọn nhiều bằng Ctrl, chọn liên tiếp bằng Shift; chọn/bỏ bằng chạm lại dòng.
 - **`Sessions`** (`zh_sessions_v1`, tối đa 60) — **mỗi lần luyện = 1 phiên**; đây là **số liệu
   người dùng xem**. Mỗi phiên: `{id, time, endTime, kind, direction, levels, topics, correct,
   wrong, timeout, accuracy, avgTimeMs, bestStreak, items:{itemId:{...}}, sequence:[...]}`.
@@ -206,7 +208,7 @@ chế độ Dịch câu.
 - **`Settings`** (`zh_settings_v1`) — `{typingOn, timerOn, timerSec, algorithm, keys:{...}}`.
 - **`Trainer`** — máy luyện cho cả `word` và `sentence`. Trạng thái phiên trong `active`. Luồng:
   - **Màn chọn nguồn** (`renderSetup`): chọn nhiều cấp + nhiều chủ đề + đổi chiều + thuật toán +
-    "chỉ ôn lỗi sai" + công tắc gõ + đồng hồ + **danh sách đã/chưa thuộc**. **Xem trước = BẢNG**
+    "chỉ ôn lỗi sai" + công tắc gõ + đồng hồ + **quản lý đã/chưa thuộc (shuttle 2 bảng)**. **Xem trước = BẢNG**
     (`renderPreview`) cột Chữ/Câu · Pinyin · Nghĩa · Chủ đề, có **ô tìm kiếm** (theo chữ Hán /
     pinyin / nghĩa bỏ dấu / chủ đề) và **sắp xếp** khi bấm tiêu đề cột.
     **Chủ đề nhóm THEO CẤP đã chọn** (`topicIndexFor`/`topicGroupsFor`/`renderTopicChips`): chỉ hiện

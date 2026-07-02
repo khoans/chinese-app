@@ -181,6 +181,10 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);line-height:1.5;marg
 .setup h4{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:7px}
 .fld{display:flex;flex-direction:column;gap:6px}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
+.topicgroups{display:flex;flex-direction:column;gap:9px;max-height:300px;overflow:auto}
+.topicgroup{border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:var(--card2)}
+.topicgroup-head{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.topicgroup-count{background:var(--paper2);border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700;color:var(--ink2)}
 .chip{border:1px solid var(--line);background:var(--paper2);border-radius:999px;padding:7px 13px;font:inherit;font-weight:600;font-size:12.5px;color:var(--ink2);cursor:pointer;transition:.12s;user-select:none}
 .chip.on{background:var(--jade);color:#f6f0e2;border-color:transparent}
 .chip.mini{padding:5px 10px;font-size:11.5px}
@@ -1050,6 +1054,24 @@ const Trainer=(function(){
     if(kind==='word')return TOPICS.slice();
     const set=[]; sentenceBank().forEach(s=>{ if(s.topic&&!set.includes(s.topic))set.push(s.topic); }); return set;
   }
+  // Bảng: mã cấp -> danh sách chủ đề (theo thứ tự xuất hiện) của cấp đó.
+  function topicIndexFor(kind){
+    const map={}; const push=(lv,t)=>{ if(!lv||!t)return; (map[lv]=map[lv]||[]); if(map[lv].indexOf(t)===-1)map[lv].push(t); };
+    if(kind==='word') WORDS.forEach(w=>push(w.lv,w.topic));
+    else sentenceBank().forEach(s=>push(s.lv,s.topic));
+    return map;
+  }
+  // Nhóm chủ đề THEO CẤP đã chọn (thứ tự cấp chuẩn); bỏ trùng (chủ đề dùng chung hiện ở cấp đầu tiên).
+  function topicGroupsFor(kind,selectedLevels){
+    const idx=topicIndexFor(kind), seen={}, groups=[];
+    levelsList().forEach(lv=>{
+      if(selectedLevels.indexOf(lv)===-1)return;
+      const ts=(idx[lv]||[]).filter(t=>!seen[t]);
+      ts.forEach(t=>seen[t]=true);
+      if(ts.length)groups.push({lv,label:levelLabel(lv),topics:ts});
+    });
+    return groups;
+  }
   function configKey(kind,cfg){
     return kind+'::'+cfg.direction+'::'+cfg.levels.slice().sort().join(',')+'::'+cfg.topics.slice().sort().join(',');
   }
@@ -1084,7 +1106,7 @@ const Trainer=(function(){
   /* ---------- MÀN HÌNH CHỌN NGUỒN (11.A6) ---------- */
   function renderSetup(kind,panel){
     const cfg=defaultConfig(kind);
-    const dirs=directionsFor(kind), topics=topicsFor(kind), levels=levelsList();
+    const dirs=directionsFor(kind), levels=levelsList();
     panel.innerHTML=`
       <div class="setup">
         <div class="fld">
@@ -1094,11 +1116,9 @@ const Trainer=(function(){
           </div>
         </div>
         <div class="fld">
-          <h4>Chủ đề (bỏ trống = tất cả)</h4>
+          <h4>Chủ đề <span class="tqsub">(theo cấp đã chọn; bỏ trống = tất cả trong cấp)</span></h4>
           <input type="search" data-role="topicFilter" placeholder="Lọc chủ đề…">
-          <div class="chips" data-role="topics">
-            ${topics.map(t=>`<button class="chip mini${cfg.topics.includes(t)?' on':''}" data-topic="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}
-          </div>
+          <div class="topicgroups" data-role="topics"></div>
         </div>
         <div class="selrow">
           <label>Chiều học
@@ -1149,18 +1169,43 @@ const Trainer=(function(){
       const mBox=q('[data-role=setupMasterBox]');
       if(mBox&&!mBox.classList.contains('hidden'))renderMasterList(mBox,kind,cfg,()=>updatePreview());
     };
-    panel.querySelectorAll('[data-role=levels] .chip,[data-role=topics] .chip').forEach(chip=>{
-      chip.onclick=()=>{chip.classList.toggle('on');updatePreview();};
+    // Lọc chủ đề đang gõ (áp cho cả nhóm; ẩn tiêu đề nhóm nếu không còn chủ đề nào hiện)
+    const applyTopicFilter=()=>{
+      const term=normalizeMeaning(q('[data-role=topicFilter]').value);
+      panel.querySelectorAll('[data-role=topics] .topicgroup').forEach(g=>{
+        let anyVisible=false;
+        g.querySelectorAll('.chip').forEach(c=>{ const show=!term||normalizeMeaning(c.dataset.topic).includes(term); c.style.display=show?'':'none'; if(show)anyVisible=true; });
+        g.style.display=anyVisible?'':'none';
+      });
+    };
+    // Dựng lại chủ đề THEO cấp đang chọn; giữ chủ đề đã chọn còn hợp lệ, bỏ chủ đề của cấp đã tắt.
+    const renderTopicChips=()=>{
+      const selectedLevels=[...panel.querySelectorAll('[data-role=levels] .chip.on')].map(b=>b.dataset.lv);
+      const groups=topicGroupsFor(kind,selectedLevels);
+      const visible={}; groups.forEach(g=>g.topics.forEach(t=>visible[t]=true));
+      cfg.topics=cfg.topics.filter(t=>visible[t]);
+      const box=q('[data-role=topics]');
+      if(!groups.length){ box.innerHTML='<div class="tqsub" style="padding:6px 2px">Chọn cấp độ ở trên để hiện chủ đề của cấp đó.</div>'; return; }
+      box.innerHTML=groups.map(g=>`
+        <div class="topicgroup">
+          <div class="topicgroup-head">${esc(g.label)}<span class="topicgroup-count">${g.topics.length}</span></div>
+          <div class="chips">${g.topics.map(t=>`<button class="chip mini${cfg.topics.indexOf(t)>=0?' on':''}" data-topic="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+        </div>`).join('');
+      applyTopicFilter();
+    };
+    // click chủ đề (uỷ quyền vì chip được dựng lại mỗi khi đổi cấp)
+    q('[data-role=topics]').addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b)return; b.classList.toggle('on'); updatePreview(); });
+    // click cấp -> dựng lại danh sách chủ đề của các cấp đang chọn
+    panel.querySelectorAll('[data-role=levels] .chip').forEach(chip=>{
+      chip.onclick=()=>{ chip.classList.toggle('on'); readCfg(); renderTopicChips(); updatePreview(); };
     });
     q('[data-role=direction]').onchange=updatePreview;
     q('[data-role=algorithm]').onchange=updatePreview;
     q('[data-role=mistakesOnly]').onchange=updatePreview;
     q('[data-role=typing]').onchange=e=>{Settings.data.typingOn=e.target.checked;Settings.save();};
     q('[data-role=timer]').onchange=e=>{Settings.data.timerOn=e.target.checked;Settings.save();};
-    q('[data-role=topicFilter]').oninput=e=>{
-      const term=normalizeMeaning(e.target.value);
-      panel.querySelectorAll('[data-role=topics] .chip').forEach(c=>{ c.style.display= (!term||normalizeMeaning(c.dataset.topic).includes(term))?'':'none'; });
-    };
+    q('[data-role=topicFilter]').oninput=applyTopicFilter;
+    renderTopicChips();
     q('[data-role=togglePreview]').onclick=()=>{ q('[data-role=preview]').classList.toggle('hidden'); updatePreview(); };
     q('[data-role=setupMasterToggle]').onclick=()=>{ const mBox=q('[data-role=setupMasterBox]'); mBox.classList.toggle('hidden'); if(!mBox.classList.contains('hidden'))renderMasterList(mBox,kind,cfg,()=>updatePreview()); };
     q('[data-role=start]').onclick=()=>{

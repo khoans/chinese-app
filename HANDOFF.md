@@ -207,6 +207,9 @@ chế độ Dịch câu.
 - **`Trainer`** — máy luyện cho cả `word` và `sentence`. Trạng thái phiên trong `active`. Luồng:
   - **Màn chọn nguồn** (`renderSetup`): chọn nhiều cấp + nhiều chủ đề + lọc + xem trước + đổi chiều
     + thuật toán + "chỉ ôn lỗi sai" + công tắc gõ + đồng hồ + **danh sách đã/chưa thuộc**.
+    **Chủ đề nhóm THEO CẤP đã chọn** (`topicIndexFor`/`topicGroupsFor`/`renderTopicChips`): chỉ hiện
+    chủ đề của các cấp đang tick, gom theo tiêu đề cấp, bỏ trùng (chủ đề HSK dùng chung hiện 1 lần).
+    Đổi cấp → dựng lại danh sách chủ đề (chip uỷ quyền sự kiện vì được render lại).
   - **Màn luyện** (`renderPracticeShell`): prompt → (gõ đáp án hoặc "Hiện đáp án") → **3 nút tự
     chấm** ✗ Chấm sai / ✓ Chấm đúng / ★ Đã thuộc → `gradeAndAdvance()` ghi thống kê + **tự qua thẻ
     mới**. **"Thẻ trước"** (`renderPrevious`/`reGrade`) cho xem lại & **chấm lại** (sửa đúng cả

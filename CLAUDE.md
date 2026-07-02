@@ -118,7 +118,9 @@ Các module (đều là `const` trong phạm vi `<script>` chính):
 - **`Trainer`**: hai chế độ trên cùng nền — **Học từ** (`word`) và **Dịch câu** (`sentence`,
   ngân hàng câu `buildSentenceBank()` = câu độc lập `sentences.csv` + ví dụ của từ + các dòng
   hội thoại; tự bỏ trùng theo chữ Hán). Có màn **chọn nguồn** (nhiều cấp + nhiều
-  chủ đề + lọc + xem trước), **đổi chiều học**, **chỉ ôn lỗi sai**, **gõ đáp án tự chấm**, **ghi
+  chủ đề + lọc + xem trước); **chủ đề nhóm theo cấp đã chọn** (`topicGroupsFor`/`renderTopicChips`
+  — chỉ hiện chủ đề của cấp đang tick, gom theo tiêu đề cấp, bỏ trùng). Có **đổi chiều học**,
+  **chỉ ôn lỗi sai**, **gõ đáp án tự chấm**, **ghi
   chú**, **đồng hồ**, và **tổng kết + biểu đồ** cuối phiên. Khi hiện đáp án có 3 nút tự chấm
   **Chấm sai / Chấm đúng / Đã thuộc**; chấm xong **tự qua thẻ mới**. **Đã thuộc** ghi nhận 1 lượt
   đúng rồi ẩn mục khỏi phần luyện (`Mastered`). Có **“Thẻ trước”** để xem lại đáp án đã làm và

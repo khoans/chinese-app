@@ -1061,13 +1061,15 @@ const Trainer=(function(){
     else sentenceBank().forEach(s=>push(s.lv,s.topic));
     return map;
   }
-  // Nhóm chủ đề THEO CẤP đã chọn (thứ tự cấp chuẩn); bỏ trùng (chủ đề dùng chung hiện ở cấp đầu tiên).
+  // Khoá chọn chủ đề = CẶP (cấp + chủ đề) -> HSK2 có list riêng, trùng HSK1 vẫn độc lập, KHÔNG gộp.
+  const TOPIC_SEP='@@';   // dau tach cap (cap, chu de) - an toan, khong co trong ma cap/chu de
+  function topicKey(lv,t){ return lv+TOPIC_SEP+t; }
+  // Nhóm chủ đề THEO CẤP đã chọn (thứ tự cấp chuẩn); mỗi cấp giữ NGUYÊN danh sách của mình (không dedup).
   function topicGroupsFor(kind,selectedLevels){
-    const idx=topicIndexFor(kind), seen={}, groups=[];
+    const idx=topicIndexFor(kind), groups=[];
     levelsList().forEach(lv=>{
       if(selectedLevels.indexOf(lv)===-1)return;
-      const ts=(idx[lv]||[]).filter(t=>!seen[t]);
-      ts.forEach(t=>seen[t]=true);
+      const ts=idx[lv]||[];
       if(ts.length)groups.push({lv,label:levelLabel(lv),topics:ts});
     });
     return groups;
@@ -1080,7 +1082,7 @@ const Trainer=(function(){
     let items = kind==='word'
       ? WORDS.filter(w=>cfg.levels.includes(w.lv)).map(w=>({kind:'word',id:'W|'+w.lv+'|'+w.w,w:w.w,p:w.p,m:w.m,ex:w.ex,exp:w.exp,exm:w.exm,topic:w.topic,lv:w.lv}))
       : sentenceBank().filter(s=>cfg.levels.includes(s.lv));
-    if(cfg.topics.length) items=items.filter(it=>cfg.topics.includes(it.topic));
+    if(cfg.topics.length) items=items.filter(it=>cfg.topics.indexOf(topicKey(it.lv,it.topic))>=0);
     return items;
   }
   function buildPool(kind,cfg){
@@ -1146,7 +1148,7 @@ const Trainer=(function(){
     const q=sel=>panel.querySelector(sel);
     const readCfg=()=>{
       cfg.levels=[...panel.querySelectorAll('[data-role=levels] .chip.on')].map(b=>b.dataset.lv);
-      cfg.topics=[...panel.querySelectorAll('[data-role=topics] .chip.on')].map(b=>b.dataset.topic);
+      cfg.topics=[...panel.querySelectorAll('[data-role=topics] .chip.on')].map(b=>topicKey(b.dataset.lv,b.dataset.topic));
       cfg.direction=q('[data-role=direction]').value;
       cfg.algorithm=q('[data-role=algorithm]').value;
       cfg.mistakesOnly=q('[data-role=mistakesOnly]').checked;
@@ -1182,14 +1184,14 @@ const Trainer=(function(){
     const renderTopicChips=()=>{
       const selectedLevels=[...panel.querySelectorAll('[data-role=levels] .chip.on')].map(b=>b.dataset.lv);
       const groups=topicGroupsFor(kind,selectedLevels);
-      const visible={}; groups.forEach(g=>g.topics.forEach(t=>visible[t]=true));
-      cfg.topics=cfg.topics.filter(t=>visible[t]);
+      const visible={}; groups.forEach(g=>g.topics.forEach(t=>visible[topicKey(g.lv,t)]=true));
+      cfg.topics=cfg.topics.filter(k=>visible[k]);   // bỏ chủ đề của cấp đã tắt
       const box=q('[data-role=topics]');
       if(!groups.length){ box.innerHTML='<div class="tqsub" style="padding:6px 2px">Chọn cấp độ ở trên để hiện chủ đề của cấp đó.</div>'; return; }
       box.innerHTML=groups.map(g=>`
         <div class="topicgroup">
           <div class="topicgroup-head">${esc(g.label)}<span class="topicgroup-count">${g.topics.length}</span></div>
-          <div class="chips">${g.topics.map(t=>`<button class="chip mini${cfg.topics.indexOf(t)>=0?' on':''}" data-topic="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+          <div class="chips">${g.topics.map(t=>`<button class="chip mini${cfg.topics.indexOf(topicKey(g.lv,t))>=0?' on':''}" data-lv="${esc(g.lv)}" data-topic="${esc(t)}">${esc(t)}</button>`).join('')}</div>
         </div>`).join('');
       applyTopicFilter();
     };

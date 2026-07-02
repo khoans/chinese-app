@@ -208,8 +208,10 @@ chế độ Dịch câu.
   - **Màn chọn nguồn** (`renderSetup`): chọn nhiều cấp + nhiều chủ đề + lọc + xem trước + đổi chiều
     + thuật toán + "chỉ ôn lỗi sai" + công tắc gõ + đồng hồ + **danh sách đã/chưa thuộc**.
     **Chủ đề nhóm THEO CẤP đã chọn** (`topicIndexFor`/`topicGroupsFor`/`renderTopicChips`): chỉ hiện
-    chủ đề của các cấp đang tick, gom theo tiêu đề cấp, bỏ trùng (chủ đề HSK dùng chung hiện 1 lần).
-    Đổi cấp → dựng lại danh sách chủ đề (chip uỷ quyền sự kiện vì được render lại).
+    chủ đề của các cấp đang tick, gom theo tiêu đề cấp. **Mỗi cấp giữ list riêng, KHÔNG gộp** — HSK1
+    và HSK2 (và sau này HSK3–6) có list riêng dù trùng tên chủ đề. Chọn theo **cặp (cấp, chủ đề)**:
+    `cfg.topics` chứa khoá `topicKey(lv,topic)` = `lv+'@@'+topic`; `buildSourceItems` lọc theo cặp.
+    Đổi cấp → dựng lại chủ đề (chip uỷ quyền sự kiện) + bỏ chủ đề của cấp đã tắt.
   - **Màn luyện** (`renderPracticeShell`): prompt → (gõ đáp án hoặc "Hiện đáp án") → **3 nút tự
     chấm** ✗ Chấm sai / ✓ Chấm đúng / ★ Đã thuộc → `gradeAndAdvance()` ghi thống kê + **tự qua thẻ
     mới**. **"Thẻ trước"** (`renderPrevious`/`reGrade`) cho xem lại & **chấm lại** (sửa đúng cả

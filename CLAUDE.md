@@ -119,7 +119,8 @@ Các module (đều là `const` trong phạm vi `<script>` chính):
   ngân hàng câu `buildSentenceBank()` = câu độc lập `sentences.csv` + ví dụ của từ + các dòng
   hội thoại; tự bỏ trùng theo chữ Hán). Có màn **chọn nguồn** (nhiều cấp + nhiều
   chủ đề + lọc + xem trước); **chủ đề nhóm theo cấp đã chọn** (`topicGroupsFor`/`renderTopicChips`
-  — chỉ hiện chủ đề của cấp đang tick, gom theo tiêu đề cấp, bỏ trùng). Có **đổi chiều học**,
+  — chỉ hiện chủ đề của cấp đang tick, gom theo tiêu đề cấp; **mỗi cấp giữ list riêng, KHÔNG gộp**;
+  chọn chủ đề theo **cặp (cấp, chủ đề)** qua `topicKey` nên HSK1/HSK2 độc lập dù trùng tên). Có **đổi chiều học**,
   **chỉ ôn lỗi sai**, **gõ đáp án tự chấm**, **ghi
   chú**, **đồng hồ**, và **tổng kết + biểu đồ** cuối phiên. Khi hiện đáp án có 3 nút tự chấm
   **Chấm sai / Chấm đúng / Đã thuộc**; chấm xong **tự qua thẻ mới**. **Đã thuộc** ghi nhận 1 lượt

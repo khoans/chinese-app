@@ -201,10 +201,14 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);line-height:1.5;marg
 .switch .track::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:.15s}
 .switch input:checked+.track{background:var(--jade);border-color:transparent}
 .switch input:checked+.track::after{transform:translateX(18px);background:#fff}
-.previewbox{max-height:160px;overflow:auto;border:1px dashed var(--line);border-radius:10px;padding:8px;background:var(--card2);display:flex;flex-wrap:wrap;gap:6px}
-.previewbox.hidden{display:none}
 .pvchip{font-size:12px;padding:4px 8px;border-radius:8px;background:var(--paper2);border:1px solid var(--line);color:var(--ink2)}
 .pvchip .zh{font-family:'Noto Serif SC',serif;font-weight:600;color:var(--ink)}
+/* Bảng "Xem trước danh sách sẽ luyện" */
+.previewwrap{display:flex;flex-direction:column;gap:8px}
+.previewwrap.hidden{display:none}
+.previewmeta{font-size:11px;color:var(--ink3);font-weight:600}
+.statstable.previewtable th,.statstable.previewtable td{text-align:left;white-space:normal;vertical-align:top}
+.statstable.previewtable td.zh{font-family:'Noto Serif SC',serif;font-size:18px;white-space:nowrap}
 .chip.done{background:var(--jade);color:#f6f0e2;border-color:transparent}
 .chip.done .zh{color:#f6f0e2}
 .chip .zh{font-family:'Noto Serif SC',serif}
@@ -1138,7 +1142,11 @@ const Trainer=(function(){
         <div class="fld">
           <h4>Xem trước · <span data-role="count">0</span> mục sẽ luyện <span data-role="masteredNote" class="tqsub"></span></h4>
           <button class="btn" data-role="togglePreview" type="button">Xem/ẩn danh sách sẽ luyện</button>
-          <div class="previewbox hidden" data-role="preview"></div>
+          <div class="previewwrap hidden" data-role="preview">
+            <input type="search" data-role="previewSearch" placeholder="Tìm: chữ Hán, pinyin, nghĩa, chủ đề…">
+            <div class="previewmeta" data-role="previewShown"></div>
+            <div class="tablewrap"><table class="statstable previewtable" data-role="previewTable"><thead></thead><tbody></tbody></table></div>
+          </div>
         </div>
         <div class="fld">
           <button class="btn" data-role="setupMasterToggle" type="button">📋 Xem/quản lý danh sách đã/chưa thuộc</button>
@@ -1156,20 +1164,39 @@ const Trainer=(function(){
       cfg.mistakesOnly=q('[data-role=mistakesOnly]').checked;
       return cfg;
     };
+    // ----- Bảng "Xem trước" (có cột, tìm kiếm, sắp xếp) -----
+    let lastPool=[], previewTerm='', previewSort={key:'',dir:1};
+    const previewCols=[['zh',kind==='word'?'Chữ':'Câu'],['py','Pinyin'],['mean','Nghĩa'],['topic','Chủ đề']];
+    const rowOf=it=> it.kind==='word'
+      ? {zh:it.w,py:it.p||'',mean:it.m||'',topic:it.topic||''}
+      : {zh:it.zh,py:it.py||'',mean:it.vi||'',topic:it.topic||''};
+    const renderPreview=()=>{
+      const box=q('[data-role=preview]'); if(box.classList.contains('hidden'))return;
+      const raw=(previewTerm||'').trim(), nterm=normalizeMeaning(raw), pterm=normalizePinyin(raw);
+      let rows=lastPool.map(rowOf).filter(r=>{
+        if(!raw)return true;
+        if(r.zh.indexOf(raw)>=0)return true;                                   // theo chữ Hán
+        if(nterm && normalizeMeaning(r.mean+' '+r.topic).indexOf(nterm)>=0)return true;  // theo nghĩa/chủ đề (bỏ dấu)
+        if(pterm && normalizePinyin(r.py).indexOf(pterm)>=0)return true;        // theo pinyin
+        return false;
+      });
+      if(previewSort.key){ const k=previewSort.key,d=previewSort.dir; rows.sort((a,b)=>String(a[k]).localeCompare(String(b[k]),'vi')*d); }
+      const cap=500, shown=rows.slice(0,cap), table=q('[data-role=previewTable]');
+      q('[data-role=previewShown]').textContent='Hiện '+shown.length+' mục'+(raw?` (lọc từ ${lastPool.length})`:'');
+      table.querySelector('thead').innerHTML='<tr>'+previewCols.map(c=>`<th data-key="${c[0]}">${c[1]}${previewSort.key===c[0]?(previewSort.dir>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>';
+      table.querySelector('tbody').innerHTML=shown.map(r=>`<tr><td class="zh">${esc(r.zh)}</td><td>${esc(r.py)}</td><td>${esc(r.mean)}</td><td>${esc(r.topic)}</td></tr>`).join('')
+        + (rows.length>cap?`<tr><td colspan="4" style="text-align:center;color:var(--ink3)">… và ${rows.length-cap} mục nữa (thu hẹp bằng ô tìm kiếm)</td></tr>`:'')
+        + (rows.length===0?`<tr><td colspan="4" style="text-align:center;color:var(--ink3)">Không có mục nào khớp.</td></tr>`:'');
+      table.querySelectorAll('th[data-key]').forEach(th=>th.onclick=()=>{ const kk=th.dataset.key; if(previewSort.key===kk)previewSort.dir*=-1; else{previewSort.key=kk;previewSort.dir=1;} renderPreview(); });
+    };
     const updatePreview=()=>{
       readCfg();
       const source=buildSourceItems(kind,cfg);
       const masteredCount=source.filter(it=>Mastered.has(it.id)).length;
-      const pool=buildPool(kind,cfg);
-      q('[data-role=count]').textContent=pool.length;
+      lastPool=buildPool(kind,cfg);
+      q('[data-role=count]').textContent=lastPool.length;
       q('[data-role=masteredNote]').textContent=masteredCount?`· ${masteredCount} đã thuộc (ẩn)`:'';
-      const box=q('[data-role=preview]');
-      if(!box.classList.contains('hidden')){
-        box.innerHTML=pool.slice(0,120).map(it=> it.kind==='word'
-          ? `<span class="pvchip"><span class="zh">${esc(it.w)}</span> ${esc(it.m||'')}</span>`
-          : `<span class="pvchip"><span class="zh">${esc(it.zh)}</span></span>`).join('')
-          + (pool.length>120?`<span class="pvchip">… +${pool.length-120}</span>`:'');
-      }
+      renderPreview();
       const mBox=q('[data-role=setupMasterBox]');
       if(mBox&&!mBox.classList.contains('hidden'))renderMasterList(mBox,kind,cfg,()=>updatePreview());
     };
@@ -1226,6 +1253,7 @@ const Trainer=(function(){
     q('[data-role=topicFilter]').oninput=applyTopicFilter;
     renderTopicChips();
     q('[data-role=togglePreview]').onclick=()=>{ q('[data-role=preview]').classList.toggle('hidden'); updatePreview(); };
+    q('[data-role=previewSearch]').oninput=e=>{ previewTerm=e.target.value; renderPreview(); };
     q('[data-role=setupMasterToggle]').onclick=()=>{ const mBox=q('[data-role=setupMasterBox]'); mBox.classList.toggle('hidden'); if(!mBox.classList.contains('hidden'))renderMasterList(mBox,kind,cfg,()=>updatePreview()); };
     q('[data-role=start]').onclick=()=>{
       readCfg();

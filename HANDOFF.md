@@ -205,8 +205,10 @@ chế độ Dịch câu.
   Trang **Thống kê** hiển thị theo phiên (chọn phiên → bảng theo mục + biểu đồ).
 - **`Settings`** (`zh_settings_v1`) — `{typingOn, timerOn, timerSec, algorithm, keys:{...}}`.
 - **`Trainer`** — máy luyện cho cả `word` và `sentence`. Trạng thái phiên trong `active`. Luồng:
-  - **Màn chọn nguồn** (`renderSetup`): chọn nhiều cấp + nhiều chủ đề + lọc + xem trước + đổi chiều
-    + thuật toán + "chỉ ôn lỗi sai" + công tắc gõ + đồng hồ + **danh sách đã/chưa thuộc**.
+  - **Màn chọn nguồn** (`renderSetup`): chọn nhiều cấp + nhiều chủ đề + đổi chiều + thuật toán +
+    "chỉ ôn lỗi sai" + công tắc gõ + đồng hồ + **danh sách đã/chưa thuộc**. **Xem trước = BẢNG**
+    (`renderPreview`) cột Chữ/Câu · Pinyin · Nghĩa · Chủ đề, có **ô tìm kiếm** (theo chữ Hán /
+    pinyin / nghĩa bỏ dấu / chủ đề) và **sắp xếp** khi bấm tiêu đề cột.
     **Chủ đề nhóm THEO CẤP đã chọn** (`topicIndexFor`/`topicGroupsFor`/`renderTopicChips`): chỉ hiện
     chủ đề của các cấp đang tick, gom theo tiêu đề cấp. **Mỗi cấp giữ list riêng, KHÔNG gộp** — HSK1
     và HSK2 (và sau này HSK3–6) có list riêng dù trùng tên chủ đề. Chọn theo **cặp (cấp, chủ đề)**:

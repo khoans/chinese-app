@@ -231,6 +231,8 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);line-height:1.5;marg
 .shuttle{display:flex;gap:8px;align-items:stretch}
 .shuttle-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .shuttle-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);display:flex;align-items:center;gap:6px}
+.selonly{margin-left:auto;border:1px solid var(--line);background:var(--card);border-radius:7px;padding:2px 8px;font:inherit;font-size:9.5px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink2);cursor:pointer}
+.selonly.on{background:var(--gold);color:#fff;border-color:transparent}
 .shuttle-col input[type=search]{width:100%}
 .shuttle-mid{flex:none;display:flex;flex-direction:column;justify-content:center;gap:6px}
 .shuttle-mid button{width:38px;height:34px;border:1px solid var(--line);background:var(--card);border-radius:9px;font-size:17px;font-weight:700;line-height:1;color:var(--ink2);cursor:pointer;transition:.12s}
@@ -261,11 +263,12 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);line-height:1.5;marg
 .notewrap{display:flex;flex-direction:column;gap:5px}
 .notewrap textarea{font:inherit;font-size:13px;color:var(--ink);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px;width:100%;resize:vertical;min-height:40px}
 .statline{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:12px;font-weight:600;color:var(--ink2)}
-.sessionstats{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:12px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
-.sessionstats>div{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.sessionstats span{color:var(--ink3);font-weight:600}
-.sessionstats b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-@media(max-width:420px){.sessionstats{grid-template-columns:1fr}}
+.sessionstats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ss-item{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:6px 9px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ss-lb{font-size:9.5px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-val{font-size:16px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.ss-val.tok{color:var(--jade-d)} .ss-val.tbad{color:var(--seal)}
+@media(max-width:520px){.sessionstats{grid-template-columns:repeat(2,1fr)}}
 .countdown{font-variant-numeric:tabular-nums}
 
 /* stats table + chart */
@@ -1344,10 +1347,14 @@ const Trainer=(function(){
         <span data-role="timer" class="countdown"></span>
       </div>
       <div class="sessionstats" data-role="sessionStats">
-        <div><span>Đã gặp (phiên này)</span><b data-role="ssSeen">0 / 0 (0%)</b></div>
-        <div><span>Đúng · Sai</span><b data-role="ssScore">0 · 0</b></div>
-        <div><span>Đã thuộc · Còn lại</span><b data-role="ssMaster">0 · 0</b></div>
-        <div><span>Chuỗi · Trước · Dài nhất</span><b data-role="ssStreak">0 · 0 · 0</b></div>
+        <div class="ss-item"><span class="ss-lb">Đã gặp trong bộ</span><span class="ss-val" data-role="ssSeen">0/0</span></div>
+        <div class="ss-item"><span class="ss-lb">Đúng</span><span class="ss-val tok" data-role="ssCorrect">0</span></div>
+        <div class="ss-item"><span class="ss-lb">Sai</span><span class="ss-val tbad" data-role="ssWrong">0</span></div>
+        <div class="ss-item"><span class="ss-lb">Đã thuộc</span><span class="ss-val" data-role="ssMastered">0</span></div>
+        <div class="ss-item"><span class="ss-lb">Còn phải học</span><span class="ss-val" data-role="ssRemain">0</span></div>
+        <div class="ss-item"><span class="ss-lb">Đúng liên tiếp</span><span class="ss-val" data-role="ssStreakCur">0</span></div>
+        <div class="ss-item"><span class="ss-lb">Chuỗi trước đó</span><span class="ss-val" data-role="ssStreakPrev">0</span></div>
+        <div class="ss-item"><span class="ss-lb">Chuỗi dài nhất</span><span class="ss-val" data-role="ssStreakBest">0</span></div>
       </div>
       <div class="traincard">
         <div class="tqprompt" data-role="prompt"></div>
@@ -1369,7 +1376,7 @@ const Trainer=(function(){
         <button class="btn dark" data-role="markMastered" type="button">★ Đã thuộc ${keyTag('mastered')}</button>
       </div>
       <div class="notewrap"><textarea data-role="note" placeholder="Ghi chú cho mục này…"></textarea></div>
-      <div class="row"><button class="btn" data-role="redo" type="button">↻ Làm lại — không tính ${keyTag('redo')}</button></div>
+      <div class="row hidden" data-role="redoRow"><button class="btn" data-role="redo" type="button">↻ Làm lại — không tính ${keyTag('redo')}</button></div>
       <div class="prevcard hidden" data-role="previous"></div>
       <div class="masterbox hidden" data-role="masterListBox"></div>
       <div class="row"><button class="btn" data-role="masterList" type="button">📋 Đã/chưa thuộc</button></div>
@@ -1434,6 +1441,7 @@ const Trainer=(function(){
     q('[data-role=promptSub]').textContent=view.promptSub||'';
     q('[data-role=answer]').classList.remove('show');
     q('[data-role=grade]').classList.remove('show');
+    q('[data-role=redoRow]').classList.add('hidden');
     q('[data-role=feedback]').textContent='';
     q('[data-role=feedback]').className='tfeedback';
     const input=q('[data-role=input]');
@@ -1459,7 +1467,7 @@ const Trainer=(function(){
     q('[data-role=aVi]').textContent=view.aVi||'';
     q('[data-role=aEx]').textContent=view.aEx||'';
     q('[data-role=answer]').classList.add('show');
-    if(!active.graded)q('[data-role=grade]').classList.add('show');
+    if(!active.graded){ q('[data-role=grade]').classList.add('show'); q('[data-role=redoRow]').classList.remove('hidden'); }
     autoSpeak(view.speakText);   // tôn trọng công tắc tự đọc; nút 🔊 Nghe vẫn phát thủ công
   }
 
@@ -1518,13 +1526,14 @@ const Trainer=(function(){
     refreshMasterList();   // nếu danh sách đã/chưa thuộc đang mở -> cập nhật ngay
   }
 
-  // "Làm lại" thẻ hiện tại: không tính thống kê, thử lại bao nhiêu lần tuỳ ý.
+  // "Làm lại" thẻ hiện tại (chỉ sau khi đã hiện đáp án): không tính thống kê, thử lại tuỳ ý.
   function redoCurrent(){
-    if(!active||!active.current||active.paused)return;
+    if(!active||!active.current||active.paused||!active.revealed)return;
     active.redoFree=true; active.graded=false; active.revealed=false; active.startTime=Date.now();
     const panel=active.panel, q=sel=>panel.querySelector(sel);
     q('[data-role=answer]').classList.remove('show');
     q('[data-role=grade]').classList.remove('show');
+    q('[data-role=redoRow]').classList.add('hidden');
     const fb=q('[data-role=feedback]'); fb.className='tfeedback tqsub'; fb.textContent='↻ Làm lại — thẻ này sẽ KHÔNG tính vào thống kê.';
     const input=q('[data-role=input]'); if(Settings.data.typingOn){ input.style.display=''; input.value=''; input.disabled=false; setTimeout(()=>input.focus(),20); }
     startTimer();
@@ -1600,7 +1609,7 @@ const Trainer=(function(){
     const source=buildSourceItems(kind,cfg);
     const rowLabel=it=> kind==='word'?{zh:it.w,m:it.m||'',py:it.p||''}:{zh:it.zh,m:it.vi||'',py:it.py||''};
     const selL=new Set(), selR=new Set();   // id đang chọn ở bảng Chưa thuộc / Đã thuộc
-    let anchorL=null, anchorR=null, leftItems=[], rightItems=[];
+    let anchorL=null, anchorR=null, leftItems=[], rightItems=[], selOnlyL=false, selOnlyR=false;
     function matchItem(it,term){
       const raw=(term||'').trim(); if(!raw)return true;
       const lb=rowLabel(it);
@@ -1614,7 +1623,7 @@ const Trainer=(function(){
     box.innerHTML=`
       <div class="shuttle">
         <div class="shuttle-col">
-          <div class="shuttle-head">Chưa thuộc <span data-role="cntL" class="topicgroup-count"></span></div>
+          <div class="shuttle-head">Chưa thuộc <span data-role="cntL" class="topicgroup-count"></span><button class="selonly" data-role="selOnlyL" type="button">Chỉ đã chọn</button></div>
           <input type="search" data-role="searchL" placeholder="Tìm…">
           <div class="tablewrap"><table class="statstable previewtable mastertable"><tbody data-role="bodyL"></tbody></table></div>
         </div>
@@ -1625,7 +1634,7 @@ const Trainer=(function(){
           <button data-role="allLeft" type="button" title="Đưa tất cả (đang hiện) về Chưa thuộc">«</button>
         </div>
         <div class="shuttle-col">
-          <div class="shuttle-head">Đã thuộc <span data-role="cntR" class="topicgroup-count"></span></div>
+          <div class="shuttle-head">Đã thuộc <span data-role="cntR" class="topicgroup-count"></span><button class="selonly" data-role="selOnlyR" type="button">Chỉ đã chọn</button></div>
           <input type="search" data-role="searchR" placeholder="Tìm…">
           <div class="tablewrap"><table class="statstable previewtable mastertable"><tbody data-role="bodyR"></tbody></table></div>
         </div>
@@ -1635,8 +1644,8 @@ const Trainer=(function(){
     const bodyHtml=(items,sel)=>items.map(it=>{const lb=rowLabel(it);return `<tr data-id="${esc(it.id)}"${sel.has(it.id)?' class="sel"':''}><td><span class="zh">${esc(lb.zh)}</span>${lb.m?` <span class="mlm">${esc(lb.m)}</span>`:''}</td></tr>`;}).join('')||'<tr><td class="tqsub" style="padding:8px">— trống —</td></tr>';
     function updCount(){ q2('[data-role=cntL]').textContent=leftItems.length+(selL.size?(' · '+selL.size+' chọn'):''); q2('[data-role=cntR]').textContent=rightItems.length+(selR.size?(' · '+selR.size+' chọn'):''); }
     function renderTables(){
-      leftItems=source.filter(it=>!Mastered.has(it.id)).filter(it=>matchItem(it,q2('[data-role=searchL]').value));
-      rightItems=source.filter(it=>Mastered.has(it.id)).filter(it=>matchItem(it,q2('[data-role=searchR]').value));
+      leftItems=source.filter(it=>!Mastered.has(it.id)).filter(it=>matchItem(it,q2('[data-role=searchL]').value)).filter(it=>!selOnlyL||selL.has(it.id));
+      rightItems=source.filter(it=>Mastered.has(it.id)).filter(it=>matchItem(it,q2('[data-role=searchR]').value)).filter(it=>!selOnlyR||selR.has(it.id));
       q2('[data-role=bodyL]').innerHTML=bodyHtml(leftItems,selL);
       q2('[data-role=bodyR]').innerHTML=bodyHtml(rightItems,selR);
       updCount();
@@ -1648,7 +1657,12 @@ const Trainer=(function(){
       const anchorId=side==='L'?anchorL:anchorR, aidx=anchorId?items.findIndex(it=>it.id===anchorId):-1;
       if(e.shiftKey && aidx>=0){ const a=Math.min(aidx,idx), b=Math.max(aidx,idx); for(let i=a;i<=b;i++)sel.add(items[i].id); }   // Shift: chọn liên tiếp (chỉ thêm)
       else { if(sel.has(id))sel.delete(id); else sel.add(id); if(side==='L')anchorL=id; else anchorR=id; }               // click/Ctrl: bật/tắt từng dòng
-      applySel(side);
+      if(side==='L'?selOnlyL:selOnlyR)renderTables(); else applySel(side);   // "chỉ đã chọn": dòng bỏ chọn sẽ ẩn ngay
+    }
+    function toggleSelOnly(side){
+      if(side==='L')selOnlyL=!selOnlyL; else selOnlyR=!selOnlyR;
+      q2(side==='L'?'[data-role=selOnlyL]':'[data-role=selOnlyR]').classList.toggle('on',side==='L'?selOnlyL:selOnlyR);
+      renderTables();
     }
     function moveSelected(side){ const sel=side==='L'?selL:selR; if(!sel.size)return; [...sel].forEach(id=> side==='L'?doMaster(id):doUnmaster(id)); sel.clear(); if(side==='L')anchorL=null; else anchorR=null; renderTables(); onChange&&onChange(); }
     function moveAll(side){ const items=(side==='L'?leftItems:rightItems).slice(); if(!items.length)return; items.forEach(it=> side==='L'?doMaster(it.id):doUnmaster(it.id)); selL.clear();selR.clear();anchorL=anchorR=null; renderTables(); onChange&&onChange(); }
@@ -1660,6 +1674,8 @@ const Trainer=(function(){
     q2('[data-role=allLeft]').onclick=()=>moveAll('R');
     q2('[data-role=searchL]').oninput=renderTables;
     q2('[data-role=searchR]').oninput=renderTables;
+    q2('[data-role=selOnlyL]').onclick=()=>toggleSelOnly('L');
+    q2('[data-role=selOnlyR]').onclick=()=>toggleSelOnly('R');
     renderTables();
   }
 
@@ -1711,13 +1727,16 @@ const Trainer=(function(){
     q('[data-role=deck]').textContent='Câu đã làm: '+answered+(active.limit>0?(' / '+active.limit):'');
     // "Đã gặp" = số mục KHÁC NHAU đã hiện trong phiên / tổng số mục của bộ
     const seenN=active.seen?active.seen.size:0, total=active.startPoolSize||0;
-    q('[data-role=ssSeen]').textContent=seenN+' / '+total+' ('+(total?Math.round(seenN/total*100):0)+'%)';
-    q('[data-role=ssScore]').textContent=sess.correct+' · '+(sess.wrong+sess.timeout);
+    q('[data-role=ssSeen]').textContent=seenN+'/'+total+(total?(' · '+Math.round(seenN/total*100)+'%'):'');
+    q('[data-role=ssCorrect]').textContent=sess.correct;
+    q('[data-role=ssWrong]').textContent=sess.wrong+sess.timeout;
     // đã thuộc trong bộ nguồn · còn lại (chưa thuộc, còn trong pool)
     const source=buildSourceItems(active.kind,active.cfg);
-    const masteredN=source.filter(it=>Mastered.has(it.id)).length;
-    q('[data-role=ssMaster]').textContent=masteredN+' · '+active.pool.length;
-    q('[data-role=ssStreak]').textContent=st.current+' · '+(st.previous||0)+' · '+st.best;
+    q('[data-role=ssMastered]').textContent=source.filter(it=>Mastered.has(it.id)).length;
+    q('[data-role=ssRemain]').textContent=active.pool.length;
+    q('[data-role=ssStreakCur]').textContent=st.current;
+    q('[data-role=ssStreakPrev]').textContent=st.previous||0;
+    q('[data-role=ssStreakBest]').textContent=st.best;
   }
 
   function endSession(){
